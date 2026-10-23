@@ -4,9 +4,15 @@ export interface HeatmapGroupCell {
   delta: number;
 }
 
+export interface HeatmapQuestion {
+  label: string;
+  cells: HeatmapGroupCell[];
+}
+
 export interface HeatmapRow {
   label: string;
   cells: HeatmapGroupCell[];
+  questions: HeatmapQuestion[];
 }
 
 export interface HeatmapContent {
@@ -27,19 +33,66 @@ const GROUPS = [
   'Operations',
 ];
 
-const CATEGORIES = [
-  'Engagement',
-  'Alignment & Involvement',
-  'Collaboration & Communication',
-  'Enablement',
-  'Feedback & Recognition',
-  'Innovation',
-  'Leadership',
-  'Learning & Development',
-  'Management',
-  'Service & Quality Focus',
-  'Social Connection',
-];
+// Survey questions revealed when a row is expanded, grouped by the factor they measure.
+const CATEGORY_QUESTIONS: Record<string, string[]> = {
+  Engagement: [
+    'I would recommend this company as a great place to work',
+    'I am proud to work for this company',
+    'I see myself still working here in two years',
+  ],
+  'Alignment & Involvement': [
+    'I understand how my work contributes to company goals',
+    'I have a say in decisions that affect my work',
+    'Leaders communicate a clear direction for the company',
+  ],
+  'Collaboration & Communication': [
+    'People across teams work well together',
+    'Information is shared openly across the company',
+    'My team communicates effectively',
+  ],
+  Enablement: [
+    'I have the tools and resources to do my job well',
+    'Our processes help me get work done efficiently',
+    'I have the authority to make decisions in my role',
+  ],
+  'Feedback & Recognition': [
+    'I receive regular, useful feedback on my work',
+    'My contributions are recognised',
+    'Feedback I receive helps me improve',
+  ],
+  Innovation: [
+    'We are encouraged to try new ways of doing things',
+    'It is safe to take smart risks here',
+    'Good ideas are acted on',
+  ],
+  Leadership: [
+    'I have confidence in the leadership team',
+    'Senior leaders act in line with our values',
+    'Leaders are open and honest with employees',
+  ],
+  'Learning & Development': [
+    'I have opportunities to learn and grow here',
+    'I can see a career path for myself',
+    'I get support to develop new skills',
+  ],
+  Management: [
+    'My manager cares about my wellbeing',
+    'My manager supports my development',
+    'My manager sets clear expectations',
+  ],
+  'Service & Quality Focus': [
+    'We deliver high-quality work for our customers',
+    'We act on customer feedback',
+    'I take pride in the quality of my work',
+  ],
+  'Social Connection': [
+    'I feel I belong at this company',
+    'I have good friends at work',
+    'People here treat each other with respect',
+  ],
+};
+
+const CATEGORIES = Object.keys(CATEGORY_QUESTIONS);
 
 // Seeded so the randomised values are the same on the server and the client.
 function createRandom(seed: number) {
@@ -66,12 +119,19 @@ function makeCell(
   return { comparisonSurvey, thisSurvey, delta: thisSurvey - comparisonSurvey };
 }
 
+const responses = GROUPS.map(() => makeCell([120, 840], [-40, 70], [20, 1000]));
+const categoryCells = CATEGORIES.map(() => GROUPS.map(() => makeCell([52, 82], [-27, 10])));
+
 export const heatmapContent: HeatmapContent = {
   groups: GROUPS,
-  responses: GROUPS.map(() => makeCell([120, 840], [-40, 70], [20, 1000])),
-  rows: CATEGORIES.map((label) => ({
+  responses,
+  rows: CATEGORIES.map((label, rowIndex) => ({
     label,
-    cells: GROUPS.map(() => makeCell([52, 82], [-27, 10])),
+    cells: categoryCells[rowIndex],
+    questions: CATEGORY_QUESTIONS[label].map((question) => ({
+      label: question,
+      cells: GROUPS.map(() => makeCell([52, 82], [-27, 10])),
+    })),
   })),
 };
 

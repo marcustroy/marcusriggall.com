@@ -8,7 +8,7 @@ import '@/styles/kaizen.css';
 import './heatmap.css';
 import { heatmapContent, formatDelta, deltaColor } from './content';
 
-const LABEL_WIDTH = 250;
+const LABEL_WIDTH = 276;
 const COMPACT_WIDTH = 112;
 const SUB_WIDTH = 72;
 const ROW_HEIGHT = 44;
@@ -18,10 +18,6 @@ const GROUP_HEADER_HEIGHT_COMPACT = 52;
 
 const GROUP_BORDER = 'border-l-2 border-[var(--color-gray-500)]';
 
-function Chevron() {
-  return <Icon name="expand_more" isPresentational className="shrink-0 !text-[16px] text-[var(--color-purple-800)]" />;
-}
-
 interface HeatmapPanelProps {
   className?: string;
 }
@@ -29,6 +25,7 @@ interface HeatmapPanelProps {
 export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   const reducedMotion = useReducedMotion();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const [expandedRows, setExpandedRows] = useState<string[]>([]);
 
   const transition = reducedMotion
     ? { duration: 0 }
@@ -36,12 +33,18 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   const fade = reducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' as const };
 
   const isExpanded = (group: string) => expandedGroups.includes(group);
-  const allExpanded = expandedGroups.length === heatmapContent.groups.length;
   const anyExpanded = expandedGroups.length > 0;
 
   const toggleGroup = (group: string) =>
     setExpandedGroups((groups) => (groups.includes(group) ? groups.filter((g) => g !== group) : [...groups, group]));
-  const toggleAllGroups = () => setExpandedGroups(allExpanded ? [] : [...heatmapContent.groups]);
+  // With anything open the button collapses everything; otherwise it expands everything.
+  const toggleAllGroups = () => setExpandedGroups(anyExpanded ? [] : [...heatmapContent.groups]);
+
+  const isRowOpen = (row: string) => expandedRows.includes(row);
+  const anyRowOpen = expandedRows.length > 0;
+  const toggleRow = (row: string) =>
+    setExpandedRows((rows) => (rows.includes(row) ? rows.filter((r) => r !== row) : [...rows, row]));
+  const toggleAllRows = () => setExpandedRows(anyRowOpen ? [] : heatmapContent.rows.map((row) => row.label));
 
   // Row height stays the same whether columns are expanded or collapsed.
   const rowHeight = ROW_HEIGHT;
@@ -109,18 +112,19 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
             variant="tertiary"
             size="small"
             className="heatmap-toolbar-button"
-            icon={<Icon name="open_in_full" isPresentational />}
+            icon={<Icon name={anyRowOpen ? 'close_fullscreen' : 'open_in_full'} isPresentational />}
+            onPress={toggleAllRows}
           >
-            Expand rows
+            {anyRowOpen ? 'Collapse rows' : 'Expand rows'}
           </Button>
           <Button
             variant="tertiary"
             size="small"
             className="heatmap-toolbar-button"
-            icon={<Icon name={allExpanded ? 'close_fullscreen' : 'open_in_full'} isPresentational />}
+            icon={<Icon name={anyExpanded ? 'close_fullscreen' : 'open_in_full'} isPresentational />}
             onPress={toggleAllGroups}
           >
-            {allExpanded ? 'Collapse columns' : 'Expand columns'}
+            {anyExpanded ? 'Collapse columns' : 'Expand columns'}
           </Button>
         </div>
         <div className="hidden sm:block">
@@ -139,17 +143,19 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
       </div>
 
       {/* Grid */}
-      <div className="overflow-x-auto">
+      <div className="max-h-[620px] overflow-auto">
         <div className="flex min-w-max">
           {/* Row labels */}
           <div className="sticky left-0 z-10 shrink-0 bg-[var(--color-white)]" style={{ width: LABEL_WIDTH }}>
-            <motion.div initial={false} animate={{ height: groupHeaderHeight }} transition={transition} />
-            <motion.div
-              className="overflow-hidden"
-              initial={false}
-              animate={{ height: subheaderHeight }}
-              transition={transition}
-            />
+            <div className="sticky top-0 z-20 bg-[var(--color-white)]">
+              <motion.div initial={false} animate={{ height: groupHeaderHeight }} transition={transition} />
+              <motion.div
+                className="overflow-hidden"
+                initial={false}
+                animate={{ height: subheaderHeight }}
+                transition={transition}
+              />
+            </div>
             <motion.div
               className="flex items-center border-t border-[var(--color-gray-300)] px-4 text-[13px] text-[var(--color-gray-600)]"
               initial={false}
@@ -158,18 +164,48 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
             >
               Responses
             </motion.div>
-            {heatmapContent.rows.map((row) => (
-              <motion.div
-                key={row.label}
-                className="flex items-center gap-2 border-t border-[var(--color-gray-300)] px-3 text-[13px] font-semibold text-[var(--color-purple-800)]"
-                initial={false}
-                animate={{ height: rowHeight }}
-                transition={transition}
-              >
-                <Chevron />
-                <span className="truncate">{row.label}</span>
-              </motion.div>
-            ))}
+            {heatmapContent.rows.map((row) => {
+              const open = isRowOpen(row.label);
+              return (
+                <div key={row.label}>
+                  <motion.div
+                    className="flex items-center gap-1 border-t border-[var(--color-gray-300)] pl-2 pr-2 text-[13px] font-semibold text-[var(--color-purple-800)]"
+                    initial={false}
+                    animate={{ height: rowHeight }}
+                    transition={transition}
+                  >
+                    <Button
+                      variant="tertiary"
+                      size="small"
+                      hasHiddenLabel
+                      className="heatmap-toolbar-button shrink-0"
+                      icon={<Icon name={open ? 'expand_less' : 'expand_more'} isPresentational />}
+                      onPress={() => toggleRow(row.label)}
+                      aria-expanded={open}
+                    >
+                      {open ? `Collapse ${row.label} questions` : `Expand ${row.label} questions`}
+                    </Button>
+                    <span>{row.label}</span>
+                  </motion.div>
+                  <motion.div
+                    className="overflow-hidden"
+                    initial={false}
+                    animate={{ height: open ? row.questions.length * rowHeight : 0, opacity: open ? 1 : 0 }}
+                    transition={{ height: transition, opacity: fade }}
+                  >
+                    {row.questions.map((question) => (
+                      <div
+                        key={question.label}
+                        className="flex items-center border-t border-[var(--color-gray-300)] pl-12 pr-3 text-[12px] leading-tight text-[var(--color-purple-800)]"
+                        style={{ height: rowHeight }}
+                      >
+                        <span className="line-clamp-2">{question.label}</span>
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Groups */}
@@ -183,6 +219,7 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
               animate={{ width: expanded ? SUB_WIDTH * 3 : COMPACT_WIDTH }}
               transition={transition}
             >
+              <div className="sticky top-0 z-[5] bg-[var(--color-white)]">
               {/* Group header: left aligned when compact, centred over its columns when expanded */}
               <motion.div
                 className={`relative flex items-center overflow-hidden text-[13px] text-[var(--color-purple-800)] ${
@@ -229,6 +266,7 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
                     </div>
                   ))}
               </motion.div>
+              </div>
 
               {/* Responses row */}
               <div>
@@ -242,11 +280,29 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
               </div>
 
               {/* Category rows */}
-              {heatmapContent.rows.map((row) => (
-                <div key={row.label}>
-                  {renderGroupCells(row.cells[groupIndex], `${group}-${row.label}`, rowHeight, expanded)}
-                </div>
-              ))}
+              {heatmapContent.rows.map((row) => {
+                const open = isRowOpen(row.label);
+                return (
+                  <div key={row.label}>
+                    {renderGroupCells(row.cells[groupIndex], `${group}-${row.label}`, rowHeight, expanded)}
+                    <motion.div
+                      className="overflow-hidden"
+                      initial={false}
+                      animate={{ height: open ? row.questions.length * rowHeight : 0, opacity: open ? 1 : 0 }}
+                      transition={{ height: transition, opacity: fade }}
+                    >
+                      {row.questions.map((question) =>
+                        renderGroupCells(
+                          question.cells[groupIndex],
+                          `${group}-${row.label}-${question.label}`,
+                          rowHeight,
+                          expanded
+                        )
+                      )}
+                    </motion.div>
+                  </div>
+                );
+              })}
             </motion.div>
             );
           })}
