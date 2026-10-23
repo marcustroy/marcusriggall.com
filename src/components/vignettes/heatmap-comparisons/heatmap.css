@@ -1,0 +1,13 @@
+/* Toolbar buttons: white by default, light blue on hover. Kaizen's styles live in a cascade
+   layer, so these unlayered rules take precedence over them. */
+.heatmap-toolbar-button {
+  --button-bg-color: var(--color-white);
+  --button-border-color: transparent;
+  white-space: nowrap;
+}
+
+.heatmap-toolbar-button[data-hovered],
+.heatmap-toolbar-button[data-pressed] {
+  --button-bg-color: var(--color-blue-100);
+  --button-border-color: transparent;
+}

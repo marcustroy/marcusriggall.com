@@ -15,7 +15,17 @@ export interface HeatmapContent {
   rows: HeatmapRow[];
 }
 
-const GROUPS = ['Customer success', 'Engineering', 'Legal', 'Sales'];
+const GROUPS = [
+  'Customer success',
+  'Design',
+  'Legal',
+  'Sales',
+  'Finance',
+  'Marketing',
+  'People',
+  'Product',
+  'Operations',
+];
 
 const CATEGORIES = [
   'Engagement',

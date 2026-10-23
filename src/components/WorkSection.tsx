@@ -412,7 +412,7 @@ export default function WorkSection() {
 
         {/* Desktop: text left, panel right */}
         <div
-          className="hidden lg:grid lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[440px_minmax(0,1fr)] gap-16 items-start"
+          className="hidden lg:grid lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-12 items-start"
         >
           {/* Left: text list */}
           <div className="flex flex-col gap-10 -mx-3">
@@ -433,7 +433,7 @@ export default function WorkSection() {
           {/* Right: interactive panel */}
           <div className="sticky top-24">
             {activeId && (
-              <Stage id={activeId} className="p-10">
+              <Stage id={activeId} className={activeId === 'heatmap-comparisons' ? 'p-6' : 'p-10'}>
                 <PanelRenderer activeId={activeId} activeIndex={activeIndex} />
               </Stage>
             )}

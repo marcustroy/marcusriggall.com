@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/lib/useReducedMotion';
-import { Button, FilterButton, Icon } from '@kaizen/components';
+import { Button, Icon } from '@kaizen/components';
 import '@/styles/kaizen.css';
+import './heatmap.css';
 import { heatmapContent, formatDelta, deltaColor } from './content';
 
-const LABEL_WIDTH = 160;
+const LABEL_WIDTH = 250;
 const COMPACT_WIDTH = 112;
 const SUB_WIDTH = 72;
 const ROW_HEIGHT_COMPACT = 44;
@@ -28,30 +29,45 @@ interface HeatmapPanelProps {
 
 export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   const reducedMotion = useReducedMotion();
-  const [columnsExpanded, setColumnsExpanded] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
 
   const transition = reducedMotion
     ? { duration: 0 }
     : { type: 'spring' as const, stiffness: 240, damping: 30, mass: 0.9 };
   const fade = reducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' as const };
 
-  const groupWidth = columnsExpanded ? SUB_WIDTH * 3 : COMPACT_WIDTH;
-  const subWidth = columnsExpanded ? SUB_WIDTH : 0;
-  const rowHeight = columnsExpanded ? ROW_HEIGHT_EXPANDED : ROW_HEIGHT_COMPACT;
-  const groupHeaderHeight = columnsExpanded ? GROUP_HEADER_HEIGHT : GROUP_HEADER_HEIGHT_COMPACT;
+  const isExpanded = (group: string) => expandedGroups.includes(group);
+  const allExpanded = expandedGroups.length === heatmapContent.groups.length;
+  const anyExpanded = expandedGroups.length > 0;
+
+  const toggleGroup = (group: string) =>
+    setExpandedGroups((groups) => (groups.includes(group) ? groups.filter((g) => g !== group) : [...groups, group]));
+  const toggleAllGroups = () => setExpandedGroups(allExpanded ? [] : [...heatmapContent.groups]);
+
+  // Rows line up across groups, so the vertical sizing follows whether any group is open.
+  const rowHeight = anyExpanded ? ROW_HEIGHT_EXPANDED : ROW_HEIGHT_COMPACT;
+  const groupHeaderHeight = anyExpanded ? GROUP_HEADER_HEIGHT : GROUP_HEADER_HEIGHT_COMPACT;
+  const subheaderHeight = anyExpanded ? SUBHEADER_HEIGHT * 1.6 : 0;
 
   // A single cell in the grid. Extra survey columns collapse to zero width.
   const renderGroupCells = (
     cell: { comparisonSurvey: number; thisSurvey: number; delta: number },
     key: string,
     height: number,
+    expanded: boolean,
     bold = false
   ) => (
-    <motion.div key={key} className={`flex w-full`} initial={false} animate={{ height }} transition={transition}>
+    <motion.div
+      key={key}
+      className="flex w-full border-t border-[var(--color-gray-300)]"
+      initial={false}
+      animate={{ height }}
+      transition={transition}
+    >
       <motion.div
         className="overflow-hidden shrink-0"
         initial={false}
-        animate={{ width: subWidth, opacity: columnsExpanded ? 1 : 0 }}
+        animate={{ width: expanded ? SUB_WIDTH : 0, opacity: expanded ? 1 : 0 }}
         transition={{ width: transition, opacity: fade }}
       >
         <div className="flex h-full items-center justify-center text-[13px] text-[var(--color-purple-800)]" style={{ width: SUB_WIDTH }}>
@@ -61,10 +77,13 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
       <motion.div
         className="overflow-hidden shrink-0"
         initial={false}
-        animate={{ width: subWidth, opacity: columnsExpanded ? 1 : 0 }}
+        animate={{ width: expanded ? SUB_WIDTH : 0, opacity: expanded ? 1 : 0 }}
         transition={{ width: transition, opacity: fade }}
       >
-        <div className="flex h-full items-center justify-center text-[13px] text-[var(--color-purple-800)]" style={{ width: SUB_WIDTH }}>
+        <div
+          className="flex h-full items-center justify-center border-l border-[var(--color-gray-300)] text-[13px] text-[var(--color-purple-800)]"
+          style={{ width: SUB_WIDTH }}
+        >
           {cell.thisSurvey}
         </div>
       </motion.div>
@@ -73,6 +92,7 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
         style={{
           backgroundColor: bold ? 'var(--color-white)' : deltaColor(cell.delta),
           color: 'var(--color-black)',
+          borderLeft: expanded ? '1px solid var(--color-gray-300)' : 'none',
         }}
       >
         {formatDelta(cell.delta)}
@@ -85,20 +105,36 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 border-b border-[var(--border-solid-border-color)] px-4 py-3">
         <div className="flex items-center gap-2">
-          <Button variant="tertiary" size="small" icon={<Icon name="open_in_full" isPresentational />}>
+          <Button
+            variant="tertiary"
+            size="small"
+            className="heatmap-toolbar-button"
+            icon={<Icon name="open_in_full" isPresentational />}
+          >
             Expand rows
           </Button>
           <Button
             variant="tertiary"
             size="small"
-            icon={<Icon name={columnsExpanded ? 'close_fullscreen' : 'open_in_full'} isPresentational />}
-            onPress={() => setColumnsExpanded((v) => !v)}
+            className="heatmap-toolbar-button"
+            icon={<Icon name={allExpanded ? 'close_fullscreen' : 'open_in_full'} isPresentational />}
+            onPress={toggleAllGroups}
           >
-            {columnsExpanded ? 'Collapse columns' : 'Expand columns'}
+            {allExpanded ? 'Collapse columns' : 'Expand columns'}
           </Button>
         </div>
         <div className="hidden sm:block">
-          <FilterButton label="Sort by" selectedValue="Department (A-Z)" />
+          <Button
+            variant="tertiary"
+            size="small"
+            className="heatmap-toolbar-button"
+            icon={<Icon name="expand_more" isPresentational />}
+            iconPosition="end"
+          >
+            <span className="whitespace-nowrap">
+              <span className="font-semibold">Sort by:</span> Department (A-Z)
+            </span>
+          </Button>
         </div>
       </div>
 
@@ -111,7 +147,7 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
             <motion.div
               className="overflow-hidden"
               initial={false}
-              animate={{ height: columnsExpanded ? SUBHEADER_HEIGHT * 1.6 : 0 }}
+              animate={{ height: subheaderHeight }}
               transition={transition}
             />
             <motion.div
@@ -137,55 +173,83 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
           </div>
 
           {/* Groups */}
-          {heatmapContent.groups.map((group, groupIndex) => (
-            <motion.div key={group} className={`shrink-0 ${GROUP_BORDER}`} initial={false} animate={{ width: groupWidth }} transition={transition}>
-              {/* Group header */}
+          {heatmapContent.groups.map((group, groupIndex) => {
+            const expanded = isExpanded(group);
+            return (
+            <motion.div
+              key={group}
+              className={`shrink-0 ${GROUP_BORDER}`}
+              initial={false}
+              animate={{ width: expanded ? SUB_WIDTH * 3 : COMPACT_WIDTH }}
+              transition={transition}
+            >
+              {/* Group header: left aligned when compact, centred over its columns when expanded */}
               <motion.div
-                className={`flex items-center justify-between gap-1 overflow-hidden px-3 text-[13px] text-[var(--color-purple-800)]`}
+                className={`relative flex items-center overflow-hidden text-[13px] text-[var(--color-purple-800)] ${
+                  expanded ? 'justify-center px-9 text-center' : 'justify-between gap-1 pl-3 pr-1'
+                }`}
                 initial={false}
                 animate={{ height: groupHeaderHeight }}
                 transition={transition}
               >
                 <span className="leading-tight">{group}</span>
-                <Icon name="open_in_full" isPresentational className="shrink-0 !text-[14px] text-[var(--color-gray-500)]" />
+                <div className={expanded ? 'absolute right-1 top-1/2 -translate-y-1/2' : 'shrink-0'}>
+                  <Button
+                    variant="tertiary"
+                    size="small"
+                    hasHiddenLabel
+                    className="heatmap-toolbar-button"
+                    icon={<Icon name={expanded ? 'close_fullscreen' : 'open_in_full'} isPresentational />}
+                    onPress={() => toggleGroup(group)}
+                    aria-expanded={expanded}
+                  >
+                    {expanded ? `Collapse ${group} columns` : `Expand ${group} columns`}
+                  </Button>
+                </div>
               </motion.div>
 
               {/* Sub-column headers */}
               <motion.div
-                className={`flex overflow-hidden border-t border-[var(--color-gray-300)]`}
+                className="flex overflow-hidden border-[var(--color-gray-300)]"
+                style={{ borderTopWidth: anyExpanded ? 1 : 0 }}
                 initial={false}
-                animate={{ height: columnsExpanded ? SUBHEADER_HEIGHT * 1.6 : 0, opacity: columnsExpanded ? 1 : 0 }}
+                animate={{ height: subheaderHeight, opacity: anyExpanded ? 1 : 0 }}
                 transition={{ height: transition, opacity: fade }}
               >
-                {['Comparison survey', 'This survey', 'Comparison'].map((label) => (
-                  <div
-                    key={label}
-                    className="flex shrink-0 items-center justify-center px-1 text-center text-[11px] leading-tight text-[var(--color-gray-600)]"
-                    style={{ width: SUB_WIDTH }}
-                  >
-                    {label}
-                  </div>
-                ))}
+                {expanded &&
+                  ['Comparison survey', 'This survey', 'Comparison'].map((label, labelIndex) => (
+                    <div
+                      key={label}
+                      className={`flex shrink-0 items-center justify-center px-1 text-center text-[11px] leading-tight text-[var(--color-gray-600)] ${
+                        labelIndex > 0 ? 'border-l border-[var(--color-gray-300)]' : ''
+                      }`}
+                      style={{ width: SUB_WIDTH }}
+                    >
+                      {label}
+                    </div>
+                  ))}
               </motion.div>
 
               {/* Responses row */}
-              <div className="border-t border-[var(--color-gray-300)]">
+              <div>
                 {renderGroupCells(
                   heatmapContent.responses[groupIndex],
                   `${group}-responses`,
                   rowHeight,
+                  expanded,
                   true
                 )}
               </div>
 
               {/* Category rows */}
               {heatmapContent.rows.map((row) => (
-                <div key={row.label} className="border-t border-[var(--color-gray-300)]">
-                  {renderGroupCells(row.cells[groupIndex], `${group}-${row.label}`, rowHeight)}
+                <div key={row.label}>
+                  {renderGroupCells(row.cells[groupIndex], `${group}-${row.label}`, rowHeight, expanded)}
                 </div>
               ))}
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
