@@ -5,13 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
-import BrowserFrame from './state-explorer/BrowserFrame';
-import DemoApp from './state-explorer/demo/DemoApp';
-import AgentOverlay from './state-explorer/demo/AgentOverlay';
-import { useDemoStore } from './state-explorer/demo/demoStore';
-import NotebookApp from '@/design-notebooks/_harness/NotebookApp';
-import '@/design-notebooks/_harness/notebook.css';
-import { ITERATIONS, PROJECT } from './design-notebook/iterations';
+import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
 
 interface WorkItem {
   id: string;
@@ -28,22 +22,9 @@ const linkTargetProps = (href: string) =>
 
 const toolItems: WorkItem[] = [
   {
-    id: 'critter',
-    title: 'Critter',
-    description: 'Browse and compare UI versions from Git. See every design iteration your coding agent makes, side by side.',
-    href: 'https://critter.sh',
-  },
-  {
-    id: 'notebook',
-    title: 'Design Notebook',
-    description: 'Create an interactive timeline of design iterations in Claude.ai. Diverge, pick the best parts and always know you got there.',
-    href: '/notebook',
-  },
-  {
-    id: 'states',
-    title: 'States',
-    description: 'Create a control panel inside your UI to reveal empty states, edge cases, loading states & error conditions.',
-    href: '/states',
+    id: 'placeholder-tool',
+    title: 'Placeholder tool',
+    description: 'A short description of this tool.',
   },
 ];
 
@@ -65,45 +46,10 @@ const projectItems: WorkItem[] = [
   },
 ];
 
-function StatesDemo() {
-  const autoPlay = useDemoStore((s) => s.autoPlay);
-
-  useEffect(() => {
-    const timer = setTimeout(() => autoPlay(), 500);
-    return () => clearTimeout(timer);
-  }, [autoPlay]);
-
+function PlaceholderToolPanel() {
   return (
-    <div className="demo-theme">
-      <div className="relative overflow-hidden rounded-lg">
-        <BrowserFrame url="localhost:5174">
-          <DemoApp highlightedCode="" />
-        </BrowserFrame>
-        <AgentOverlay />
-      </div>
-    </div>
-  );
-}
-
-function CritterDemo() {
-  return (
-    <div className="relative overflow-hidden rounded-lg border border-neutral-200">
-      <video
-        src="/critter/walkthrough.mp4"
-        className="block w-full h-auto aspect-[1200/760]"
-        autoPlay
-        muted
-        loop
-        playsInline
-      />
-    </div>
-  );
-}
-
-function NotebookDemo() {
-  return (
-    <div className="relative overflow-hidden rounded-lg border border-neutral-200 [&>div]:!min-h-0">
-      <NotebookApp iterations={ITERATIONS} project={PROJECT} defaultFilmstripOpen />
+    <div className="flex aspect-[4/3] w-full items-center justify-center p-10 text-center">
+      <p className="type-small text-secondary">Placeholder tool preview coming soon</p>
     </div>
   );
 }
@@ -144,10 +90,9 @@ function ProjectPlaceholder({ id }: { id: string }) {
 function WorkPanel({ id }: { id: string }) {
   return (
     <>
-      {id === 'critter' && <CritterDemo />}
-      {id === 'states' && <StatesDemo />}
-      {id === 'notebook' && <NotebookDemo />}
-      {projectItems.some((item) => item.id === id) && <ProjectPlaceholder id={id} />}
+      {id === 'placeholder-tool' && <PlaceholderToolPanel />}
+      {id === 'heatmap-comparisons' && <HeatmapPanel />}
+      {id !== 'heatmap-comparisons' && projectItems.some((item) => item.id === id) && <ProjectPlaceholder id={id} />}
     </>
   );
 }
@@ -238,9 +183,7 @@ function GroupLabel({ children }: { children: string }) {
 // screen becomes active and its preview comes into focus.
 // Each preview sits on a softly tinted backdrop in its project's colour.
 const STAGE_TINTS: Record<string, string> = {
-  critter: '#F2EADB',
-  notebook: '#F4E4DA',
-  states: '#EAE6F4',
+  'placeholder-tool': '#F2EADB',
   'heatmap-comparisons': '#DFEFEE',
   'culture-quadrant': '#E4ECF6',
   'sensitive-comments': '#E9EEDF',
