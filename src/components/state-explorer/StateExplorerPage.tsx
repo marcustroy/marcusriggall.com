@@ -102,7 +102,7 @@ export default function StateExplorerPage({
               >
                 Did it work?{' '}
                 <a
-                  href="https://www.linkedin.com/in/idamadam/"
+                  href="https://www.linkedin.com/in/marcusriggall"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: '#0A66C2' }}

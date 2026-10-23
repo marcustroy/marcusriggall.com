@@ -3,7 +3,7 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 
 export const runtime = "nodejs";
-export const alt = "Idam Adam - Lead Product Designer";
+export const alt = "Marcus Riggall - Lead Product Designer";
 export const size = {
   width: 1200,
   height: 630,
@@ -73,7 +73,7 @@ export default async function Image() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={headshotBase64}
-              alt="Idam Adam"
+              alt="Marcus Riggall"
               width={120}
               height={120}
               style={{
@@ -92,7 +92,7 @@ export default async function Image() {
               letterSpacing: "-0.01em",
             }}
           >
-            Idam Adam
+            Marcus Riggall
           </div>
 
           {/* Role */}

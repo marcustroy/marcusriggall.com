@@ -1,4 +1,4 @@
-# Hi, I'm Idam Adam
+# Hi, I'm Marcus Riggall
 I'm a Product Designer with 8 years of experience creating intuitive web and mobile products that solve complex business problems through user-centered design.
 
 I excel at diving into murky, complex problem spaces to create simple and elegant design solutions backed with evidence. My approach combines deep user research, technical collaboration, and systematic design thinking to deliver measurable impact. I thrive in team environments that value frequent shipping, high trust and autonomy.

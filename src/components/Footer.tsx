@@ -34,12 +34,12 @@ export default function Footer() {
           <div className="flex flex-col items-start lg:items-end gap-2">
             <div className="flex items-center gap-2 -m-2">
               <a
-                href="https://www.linkedin.com/in/idamadam/"
+                href="https://www.linkedin.com/in/marcusriggall"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 className="flex items-center p-2 text-secondary hover:text-primary transition-colors duration-200"
-                onClick={() => trackExternalLinkClicked('footer-linkedin', 'https://www.linkedin.com/in/idamadam/')}
+                onClick={() => trackExternalLinkClicked('footer-linkedin', 'https://www.linkedin.com/in/marcusriggall')}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -51,12 +51,12 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://github.com/idamadam"
+                href="https://github.com/marcustroy"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
                 className="flex items-center p-2 text-secondary hover:text-primary transition-colors duration-200"
-                onClick={() => trackExternalLinkClicked('footer-github', 'https://github.com/idamadam')}
+                onClick={() => trackExternalLinkClicked('footer-github', 'https://github.com/marcustroy')}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

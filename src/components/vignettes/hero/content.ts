@@ -8,6 +8,7 @@ export interface Company {
 
 export interface HeroContent {
   name: string;
+  headline: string;
   companies: Company[];
 }
 
@@ -24,7 +25,8 @@ export interface IntroContent {
 }
 
 export const heroContent: HeroContent = {
-  name: 'Idam Adam',
+  name: 'Marcus Riggall',
+  headline: 'Hi, my name is Marcus',
   companies: [
     { name: 'Culture Amp', logo: '/logos/cultureamp.svg', type: 'svg', url: 'https://cultureamp.com' },
     { name: 'MYOB', logo: '/logos/myob.svg', type: 'svg', url: 'https://myob.com', hoverColor: 'oklch(0.5147 0.2738 294.67)' },
@@ -33,7 +35,7 @@ export const heroContent: HeroContent = {
 };
 
 export const introContent: IntroContent = {
-  role: 'designing with machines',
+  role: '',
   lines: [],
   links: {},
 };

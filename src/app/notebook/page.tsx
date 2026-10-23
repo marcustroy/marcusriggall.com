@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import DesignNotebookPage from '@/components/design-notebook/DesignNotebookPage'
 
 export const metadata: Metadata = {
-  title: 'Design Notebook — Idam Adam',
+  title: 'Design Notebook — Marcus Riggall',
   description:
     'Design Notebook builds an interactive timeline of your design iterations. Diverge into multiple directions, pick the best parts, and always know how you got here.',
   openGraph: {

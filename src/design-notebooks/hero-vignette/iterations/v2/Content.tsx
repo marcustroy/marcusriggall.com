@@ -53,7 +53,7 @@ export function Content({ state }: { state: V2State }) {
         }}>
           <img
             src="/avatars/headshot.jpg"
-            alt="Idam Adam"
+            alt="Marcus Riggall"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
@@ -75,7 +75,7 @@ export function Content({ state }: { state: V2State }) {
             color: '#111',
             lineHeight: 1.1,
           }}>
-            Idam Adam
+            Marcus Riggall
           </h1>
 
           {/* Role + company */}

@@ -46,7 +46,8 @@ export default function Header() {
         >
           <SiteHeaderBar
             onHome
-            onLinkedInClick={() => trackExternalLinkClicked('header-linkedin', 'https://www.linkedin.com/in/idamadam/')}
+            onLinkedInClick={() => trackExternalLinkClicked('header-linkedin', 'https://www.linkedin.com/in/marcusriggall')}
+            onGitHubClick={() => trackExternalLinkClicked('header-github', 'https://github.com/marcustroy')}
           />
         </motion.header>
       )}

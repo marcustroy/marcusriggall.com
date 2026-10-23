@@ -1,14 +1,10 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
-import HighlightsPanel from './vignettes/ai-highlights/HighlightsPanel';
-import SuggestionsPanel from './vignettes/ai-suggestions/SuggestionsPanel';
-import TranslationManagementPanel from './vignettes/multilingual/TranslationManagementPanel';
-import SandboxPanel from './vignettes/prototyping/SandboxPanel';
 import BrowserFrame from './state-explorer/BrowserFrame';
 import DemoApp from './state-explorer/demo/DemoApp';
 import AgentOverlay from './state-explorer/demo/AgentOverlay';
@@ -16,8 +12,6 @@ import { useDemoStore } from './state-explorer/demo/demoStore';
 import NotebookApp from '@/design-notebooks/_harness/NotebookApp';
 import '@/design-notebooks/_harness/notebook.css';
 import { ITERATIONS, PROJECT } from './design-notebook/iterations';
-import { aiSuggestionsContent, defaultBorderSettings } from './vignettes/ai-suggestions/content';
-import type { BorderSettings } from './vignettes/ai-suggestions/content';
 
 interface WorkItem {
   id: string;
@@ -55,24 +49,19 @@ const toolItems: WorkItem[] = [
 
 const projectItems: WorkItem[] = [
   {
-    id: 'highlights',
-    title: 'Highlights and Opportunities',
-    description: 'AI summaries to make performance reviews easier.',
+    id: 'heatmap-comparisons',
+    title: 'Heatmap Survey Comparisons',
+    description: 'Compare survey results across groups and time periods in a single heatmap.',
   },
   {
-    id: 'suggestions',
-    title: 'AI Suggest Improvements',
-    description: 'AI suggestions to help managers write better feedback.',
+    id: 'culture-quadrant',
+    title: 'Performance Culture Quadrant',
+    description: 'A quadrant view that shows how performance and culture relate across teams.',
   },
   {
-    id: 'multilingual',
-    title: 'Multilingual Performance Cycles',
-    description: 'A simple workflow to run a multilingual performance cycle.',
-  },
-  {
-    id: 'prototyping',
-    title: 'Design Sandbox',
-    description: 'Built an internal repository to make AI prototyping faster and easier.',
+    id: 'sensitive-comments',
+    title: 'Sensitive Comments Management',
+    description: 'Tools to review and handle sensitive survey comments with care.',
   },
 ];
 
@@ -143,34 +132,22 @@ const panelVariants = {
   }),
 };
 
-function WorkPanel({ id }: { id: string }) {
-  const [borderSettings, setBorderSettings] = useState<BorderSettings>(defaultBorderSettings);
-  const handleBorderSettingsChange = useCallback((settings: BorderSettings) => {
-    setBorderSettings(settings);
-  }, []);
+function ProjectPlaceholder({ id }: { id: string }) {
+  const item = projectItems.find((i) => i.id === id);
+  return (
+    <div className="flex aspect-[4/3] w-full items-center justify-center p-10 text-center">
+      <p className="type-small text-secondary">{item?.title} preview coming soon</p>
+    </div>
+  );
+}
 
+function WorkPanel({ id }: { id: string }) {
   return (
     <>
       {id === 'critter' && <CritterDemo />}
       {id === 'states' && <StatesDemo />}
       {id === 'notebook' && <NotebookDemo />}
-      {id === 'highlights' && (
-        <HighlightsPanel activeStory={null} showBeforeState={false} />
-      )}
-      {id === 'suggestions' && (
-        <SuggestionsPanel
-          content={aiSuggestionsContent}
-          activeStory={null}
-          borderSettings={borderSettings}
-          onBorderSettingsChange={handleBorderSettingsChange}
-        />
-      )}
-      {id === 'multilingual' && (
-        <TranslationManagementPanel initialComplete activeStory={null} showBeforeState={false} />
-      )}
-      {id === 'prototyping' && (
-        <SandboxPanel activeStory={null} />
-      )}
+      {projectItems.some((item) => item.id === id) && <ProjectPlaceholder id={id} />}
     </>
   );
 }
@@ -264,16 +241,15 @@ const STAGE_TINTS: Record<string, string> = {
   critter: '#F2EADB',
   notebook: '#F4E4DA',
   states: '#EAE6F4',
-  highlights: '#DFEFEE',
-  suggestions: '#E4ECF6',
-  multilingual: '#E9EEDF',
-  prototyping: '#E8E9EE',
+  'heatmap-comparisons': '#DFEFEE',
+  'culture-quadrant': '#E4ECF6',
+  'sensitive-comments': '#E9EEDF',
 };
 
 // Every panel sits on white so the tint never shows through transparent chrome.
 // Panels made of loose parts (no card of their own) also get padding, so they
 // read as one surface under the shadow.
-const UNFRAMED_PANELS = new Set(['multilingual', 'suggestions', 'prototyping']);
+const UNFRAMED_PANELS = new Set<string>();
 
 function Stage({ id, className = '', children }: { id: string; className?: string; children: React.ReactNode }) {
   return (

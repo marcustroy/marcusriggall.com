@@ -14,24 +14,24 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://idamadam.com"),
-  title: "Idam Adam — Lead Product Designer",
+  title: "Marcus Riggall - Lead Product Designer",
   description:
-    "Idam Adam is a Lead Product Designer designing with machines: AI products, agent skills and tools for designing with coding agents.",
-  authors: [{ name: "Idam Adam" }],
+    "Marcus Riggall is a Lead Product Designer designing with machines: AI products, agent skills and tools for designing with coding agents.",
+  authors: [{ name: "Marcus Riggall" }],
   openGraph: {
-    title: "Idam Adam — Lead Product Designer",
+    title: "Marcus Riggall - Lead Product Designer",
     description:
-      "Idam Adam is a Lead Product Designer designing with machines: AI products, agent skills and tools for designing with coding agents.",
+      "Marcus Riggall is a Lead Product Designer designing with machines: AI products, agent skills and tools for designing with coding agents.",
     url: "https://idamadam.com",
-    siteName: "Idam Adam",
+    siteName: "Marcus Riggall",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Idam Adam — Lead Product Designer",
+    title: "Marcus Riggall - Lead Product Designer",
     description:
-      "Idam Adam is a Lead Product Designer designing with machines: AI products, agent skills and tools for designing with coding agents.",
+      "Marcus Riggall is a Lead Product Designer designing with machines: AI products, agent skills and tools for designing with coding agents.",
   },
   robots: {
     index: true,

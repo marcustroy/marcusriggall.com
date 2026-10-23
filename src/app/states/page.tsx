@@ -16,7 +16,7 @@ const codeViewSource = `export default function PricingCard() {
 }`
 
 export const metadata: Metadata = {
-  title: 'States — Idam Adam',
+  title: 'States — Marcus Riggall',
   description:
     'A prompt that figures out which states your prototype has, then builds you a panel to flip between them. Works with Claude Code, Cursor, Codex, Figma Make, or any other coding agent.',
   openGraph: {

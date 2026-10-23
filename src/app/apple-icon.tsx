@@ -39,7 +39,7 @@ export default async function Icon() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={headshotBase64}
-            alt="Idam Adam"
+            alt="Marcus Riggall"
             width={180}
             height={180}
             style={{
