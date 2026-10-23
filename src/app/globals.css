@@ -18,7 +18,7 @@
   --neutral-50: #FAFAFA;
 
   /* Semantic colors */
-  --background: #FAFAFA;
+  --background: #FFFFFF;
   --background-elevated: #FFFFFF;
   --background-subtle: #F4F4F5;
   --foreground: var(--neutral-900);
@@ -516,7 +516,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: #FAFAFA;
+  background: #FFFFFF;
   pointer-events: none;
 }
 

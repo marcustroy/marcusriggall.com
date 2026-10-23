@@ -11,8 +11,7 @@ import { heatmapContent, formatDelta, deltaColor } from './content';
 const LABEL_WIDTH = 250;
 const COMPACT_WIDTH = 112;
 const SUB_WIDTH = 72;
-const ROW_HEIGHT_COMPACT = 44;
-const ROW_HEIGHT_EXPANDED = 34;
+const ROW_HEIGHT = 44;
 const SUBHEADER_HEIGHT = 34;
 const GROUP_HEADER_HEIGHT = 40;
 const GROUP_HEADER_HEIGHT_COMPACT = 52;
@@ -44,8 +43,9 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
     setExpandedGroups((groups) => (groups.includes(group) ? groups.filter((g) => g !== group) : [...groups, group]));
   const toggleAllGroups = () => setExpandedGroups(allExpanded ? [] : [...heatmapContent.groups]);
 
-  // Rows line up across groups, so the vertical sizing follows whether any group is open.
-  const rowHeight = anyExpanded ? ROW_HEIGHT_EXPANDED : ROW_HEIGHT_COMPACT;
+  // Row height stays the same whether columns are expanded or collapsed.
+  const rowHeight = ROW_HEIGHT;
+  // The header area still follows whether any group is open, so it lines up across groups.
   const groupHeaderHeight = anyExpanded ? GROUP_HEADER_HEIGHT : GROUP_HEADER_HEIGHT_COMPACT;
   const subheaderHeight = anyExpanded ? SUBHEADER_HEIGHT * 1.6 : 0;
 
