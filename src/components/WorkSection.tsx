@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
 import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
+import PcqPanel from './vignettes/pcq/PcqPanel';
 
 interface WorkItem {
   id: string;
@@ -20,39 +21,26 @@ const isExternal = (href: string) => /^https?:\/\//.test(href);
 const linkTargetProps = (href: string) =>
   isExternal(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
-const toolItems: WorkItem[] = [
-  {
-    id: 'placeholder-tool',
-    title: 'Placeholder tool',
-    description: 'A short description of this tool.',
-  },
-];
+// The Tools group is hidden while this list is empty. Add items here (and a panel in WorkPanel) to bring it back.
+const toolItems: WorkItem[] = [];
 
 const projectItems: WorkItem[] = [
   {
     id: 'heatmap-comparisons',
     title: 'Heatmap Survey Comparisons',
-    description: 'Compare survey results across groups and time periods in a single heatmap.',
+    description: 'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
   },
   {
     id: 'culture-quadrant',
     title: 'Performance Culture Quadrant',
-    description: 'A quadrant view that shows how performance and culture relate across teams.',
+    description: 'Connecting engagement and performance confidence to help customers understand their culture and identify the path to Peak Performance',
   },
   {
     id: 'sensitive-comments',
     title: 'Sensitive Comments Management',
-    description: 'Tools to review and handle sensitive survey comments with care.',
+    description: 'Leveraging AI to identify sensitive comments to be reviewed and redacted',
   },
 ];
-
-function PlaceholderToolPanel() {
-  return (
-    <div className="flex aspect-[4/3] w-full items-center justify-center p-10 text-center">
-      <p className="type-small text-secondary">Placeholder tool preview coming soon</p>
-    </div>
-  );
-}
 
 const workItemOrder = [...toolItems, ...projectItems].map((item) => item.id);
 
@@ -90,9 +78,9 @@ function ProjectPlaceholder({ id }: { id: string }) {
 function WorkPanel({ id }: { id: string }) {
   return (
     <>
-      {id === 'placeholder-tool' && <PlaceholderToolPanel />}
       {id === 'heatmap-comparisons' && <HeatmapPanel />}
-      {id !== 'heatmap-comparisons' && projectItems.some((item) => item.id === id) && <ProjectPlaceholder id={id} />}
+      {id === 'culture-quadrant' && <PcqPanel />}
+      {id === 'sensitive-comments' && <ProjectPlaceholder id={id} />}
     </>
   );
 }
@@ -183,7 +171,6 @@ function GroupLabel({ children }: { children: string }) {
 // screen becomes active and its preview comes into focus.
 // Each preview sits on a softly tinted backdrop in its project's colour.
 const STAGE_TINTS: Record<string, string> = {
-  'placeholder-tool': '#F2EADB',
   'heatmap-comparisons': '#DFEFEE',
   'culture-quadrant': '#E4ECF6',
   'sensitive-comments': '#E9EEDF',
@@ -394,9 +381,9 @@ function DesktopGroup({
 }
 
 export default function WorkSection() {
-  const [activeId, setActiveId] = useState<string | null>(toolItems[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>((toolItems[0] ?? projectItems[0])?.id ?? null);
   const activeIndex = activeId ? workItemOrder.indexOf(activeId) : 0;
-  const [mobileActiveId, setMobileActiveId] = useState<string | null>(toolItems[0]?.id ?? null);
+  const [mobileActiveId, setMobileActiveId] = useState<string | null>((toolItems[0] ?? projectItems[0])?.id ?? null);
 
   return (
     <section id="work" className="w-full pb-8 lg:pb-12 px-6 lg:px-10 2xl:px-16 scroll-mt-20">
@@ -406,7 +393,9 @@ export default function WorkSection() {
       <motion.div className="max-w-[1200px] mx-auto mt-6" {...fadeInUp}>
         {/* Mobile: stacked list */}
         <div className="lg:hidden flex flex-col gap-16">
-          <MobileGroup label="Tools" items={toolItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
+          {toolItems.length > 0 && (
+            <MobileGroup label="Tools" items={toolItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
+          )}
           <MobileGroup label="Culture Amp" items={projectItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
         </div>
 
@@ -416,12 +405,14 @@ export default function WorkSection() {
         >
           {/* Left: text list */}
           <div className="flex flex-col gap-10 -mx-3">
-            <DesktopGroup
-              label="Tools"
-              items={toolItems}
-              activeId={activeId}
-              onActivate={setActiveId}
-            />
+            {toolItems.length > 0 && (
+              <DesktopGroup
+                label="Tools"
+                items={toolItems}
+                activeId={activeId}
+                onActivate={setActiveId}
+              />
+            )}
             <DesktopGroup
               label="Culture Amp"
               items={projectItems}

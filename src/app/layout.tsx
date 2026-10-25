@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { CSSGradientBackground } from "@/components/CSSGradientBackground";
-import { Agentation } from "agentation";
 import MotionProvider from "@/components/MotionProvider";
 
 const inter = Inter({
@@ -72,7 +71,6 @@ export default function RootLayout({
       >
         <CSSGradientBackground />
         <MotionProvider>{children}</MotionProvider>
-        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   );
