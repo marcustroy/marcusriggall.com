@@ -293,7 +293,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={fade}
-              className="rounded-[7px] border-2 border-[var(--color-red-300)] bg-[var(--color-red-100)] px-4 py-3"
+              className="rounded-[7px] border border-[var(--color-red-300)] bg-[var(--color-red-100)] px-4 py-3"
             >
               <p className="text-[13px] font-semibold">Something went wrong</p>
               <p className="mt-1 text-[12px] leading-[1.5]">
@@ -308,7 +308,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={fade}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[7px] border-2 px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[7px] border px-4 py-3"
               style={{ background: TEAL_BG, borderColor: TEAL_BORDER }}
             >
               <div className="min-w-0 flex-1 basis-[280px]">
@@ -383,15 +383,14 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
             </div>
             <div className="min-w-0 flex-1 pl-7">
               <div className="relative">
-                {/* y ticks */}
-                <span className="absolute -left-1 top-0 -translate-x-full text-[11px] text-[var(--color-gray-600)]">
-                  {domain.y[1]}
-                </span>
-                <span className="absolute -left-1 bottom-0 -translate-x-full text-[11px] text-[var(--color-gray-600)]">
-                  {domain.y[0]}
-                </span>
-
                 <div className="relative h-[300px] w-full">
+                  {/* y ticks, centred on the edges of the plot */}
+                  <span className="absolute -left-1 top-0 -translate-x-full -translate-y-1/2 text-[11px] leading-none text-[var(--color-gray-600)]">
+                    {domain.y[1]}
+                  </span>
+                  <span className="absolute -left-1 bottom-0 -translate-x-full translate-y-1/2 text-[11px] leading-none text-[var(--color-gray-600)]">
+                    {domain.y[0]}
+                  </span>
                   {/* quadrants: hover to highlight, select to zoom in */}
                   {!zoomed &&
                     quadrants.map((q) => {
@@ -474,7 +473,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                     return (
                       <span
                         key={q.id}
-                        className={`pointer-events-none absolute z-10 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
+                        className={`pointer-events-none absolute z-10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
                           left ? 'left-0' : 'right-0'
                         } ${top ? 'top-0' : 'bottom-0'}`}
                         style={{ background: CHIP_BG, color: TEAL_TEXT }}
