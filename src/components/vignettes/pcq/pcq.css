@@ -1,0 +1,13 @@
+/* Compact Kaizen buttons for the State Explorer. Kaizen's smallest size is 32px, so these
+   override its sizing variables (its styles sit in a cascade layer, so unlayered rules win). */
+.pcq-state-button {
+  --button-min-x-y: 24px;
+  --button-padding-y: 0px;
+  --button-padding-x: 8px;
+  --button-font-size: 0.6875rem;
+  --button-line-height: 0.875rem;
+}
+
+.pcq-nowrap {
+  white-space: nowrap;
+}

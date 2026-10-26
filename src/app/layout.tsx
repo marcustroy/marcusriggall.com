@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { CSSGradientBackground } from "@/components/CSSGradientBackground";
-import { Agentation } from "agentation";
 import MotionProvider from "@/components/MotionProvider";
 
 const inter = Inter({
@@ -65,13 +64,13 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
       </head>
       <body
         className={`${inter.variable} antialiased`}
       >
         <CSSGradientBackground />
         <MotionProvider>{children}</MotionProvider>
-        {process.env.NODE_ENV === "development" && <Agentation />}
       </body>
     </html>
   );

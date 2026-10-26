@@ -5,13 +5,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
-import BrowserFrame from './state-explorer/BrowserFrame';
-import DemoApp from './state-explorer/demo/DemoApp';
-import AgentOverlay from './state-explorer/demo/AgentOverlay';
-import { useDemoStore } from './state-explorer/demo/demoStore';
-import NotebookApp from '@/design-notebooks/_harness/NotebookApp';
-import '@/design-notebooks/_harness/notebook.css';
-import { ITERATIONS, PROJECT } from './design-notebook/iterations';
+import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
+import PcqPanel from './vignettes/pcq/PcqPanel';
 
 interface WorkItem {
   id: string;
@@ -26,87 +21,26 @@ const isExternal = (href: string) => /^https?:\/\//.test(href);
 const linkTargetProps = (href: string) =>
   isExternal(href) ? { target: '_blank', rel: 'noopener noreferrer' } : {};
 
-const toolItems: WorkItem[] = [
-  {
-    id: 'critter',
-    title: 'Critter',
-    description: 'Browse and compare UI versions from Git. See every design iteration your coding agent makes, side by side.',
-    href: 'https://critter.sh',
-  },
-  {
-    id: 'notebook',
-    title: 'Design Notebook',
-    description: 'Create an interactive timeline of design iterations in Claude.ai. Diverge, pick the best parts and always know you got there.',
-    href: '/notebook',
-  },
-  {
-    id: 'states',
-    title: 'States',
-    description: 'Create a control panel inside your UI to reveal empty states, edge cases, loading states & error conditions.',
-    href: '/states',
-  },
-];
+// The Tools group is hidden while this list is empty. Add items here (and a panel in WorkPanel) to bring it back.
+const toolItems: WorkItem[] = [];
 
 const projectItems: WorkItem[] = [
   {
     id: 'heatmap-comparisons',
     title: 'Heatmap Survey Comparisons',
-    description: 'Compare survey results across groups and time periods in a single heatmap.',
+    description: 'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
   },
   {
     id: 'culture-quadrant',
     title: 'Performance Culture Quadrant',
-    description: 'A quadrant view that shows how performance and culture relate across teams.',
+    description: 'Connecting engagement and performance confidence to help customers understand their culture and identify the path to Peak Performance',
   },
   {
     id: 'sensitive-comments',
     title: 'Sensitive Comments Management',
-    description: 'Tools to review and handle sensitive survey comments with care.',
+    description: 'Leveraging AI to identify sensitive comments to be reviewed and redacted',
   },
 ];
-
-function StatesDemo() {
-  const autoPlay = useDemoStore((s) => s.autoPlay);
-
-  useEffect(() => {
-    const timer = setTimeout(() => autoPlay(), 500);
-    return () => clearTimeout(timer);
-  }, [autoPlay]);
-
-  return (
-    <div className="demo-theme">
-      <div className="relative overflow-hidden rounded-lg">
-        <BrowserFrame url="localhost:5174">
-          <DemoApp highlightedCode="" />
-        </BrowserFrame>
-        <AgentOverlay />
-      </div>
-    </div>
-  );
-}
-
-function CritterDemo() {
-  return (
-    <div className="relative overflow-hidden rounded-lg border border-neutral-200">
-      <video
-        src="/critter/walkthrough.mp4"
-        className="block w-full h-auto aspect-[1200/760]"
-        autoPlay
-        muted
-        loop
-        playsInline
-      />
-    </div>
-  );
-}
-
-function NotebookDemo() {
-  return (
-    <div className="relative overflow-hidden rounded-lg border border-neutral-200 [&>div]:!min-h-0">
-      <NotebookApp iterations={ITERATIONS} project={PROJECT} defaultFilmstripOpen />
-    </div>
-  );
-}
 
 const workItemOrder = [...toolItems, ...projectItems].map((item) => item.id);
 
@@ -144,10 +78,9 @@ function ProjectPlaceholder({ id }: { id: string }) {
 function WorkPanel({ id }: { id: string }) {
   return (
     <>
-      {id === 'critter' && <CritterDemo />}
-      {id === 'states' && <StatesDemo />}
-      {id === 'notebook' && <NotebookDemo />}
-      {projectItems.some((item) => item.id === id) && <ProjectPlaceholder id={id} />}
+      {id === 'heatmap-comparisons' && <HeatmapPanel />}
+      {id === 'culture-quadrant' && <PcqPanel />}
+      {id === 'sensitive-comments' && <ProjectPlaceholder id={id} />}
     </>
   );
 }
@@ -238,9 +171,6 @@ function GroupLabel({ children }: { children: string }) {
 // screen becomes active and its preview comes into focus.
 // Each preview sits on a softly tinted backdrop in its project's colour.
 const STAGE_TINTS: Record<string, string> = {
-  critter: '#F2EADB',
-  notebook: '#F4E4DA',
-  states: '#EAE6F4',
   'heatmap-comparisons': '#DFEFEE',
   'culture-quadrant': '#E4ECF6',
   'sensitive-comments': '#E9EEDF',
@@ -451,9 +381,9 @@ function DesktopGroup({
 }
 
 export default function WorkSection() {
-  const [activeId, setActiveId] = useState<string | null>(toolItems[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>((toolItems[0] ?? projectItems[0])?.id ?? null);
   const activeIndex = activeId ? workItemOrder.indexOf(activeId) : 0;
-  const [mobileActiveId, setMobileActiveId] = useState<string | null>(toolItems[0]?.id ?? null);
+  const [mobileActiveId, setMobileActiveId] = useState<string | null>((toolItems[0] ?? projectItems[0])?.id ?? null);
 
   return (
     <section id="work" className="w-full pb-8 lg:pb-12 px-6 lg:px-10 2xl:px-16 scroll-mt-20">
@@ -463,22 +393,26 @@ export default function WorkSection() {
       <motion.div className="max-w-[1200px] mx-auto mt-6" {...fadeInUp}>
         {/* Mobile: stacked list */}
         <div className="lg:hidden flex flex-col gap-16">
-          <MobileGroup label="Tools" items={toolItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
+          {toolItems.length > 0 && (
+            <MobileGroup label="Tools" items={toolItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
+          )}
           <MobileGroup label="Culture Amp" items={projectItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
         </div>
 
         {/* Desktop: text left, panel right */}
         <div
-          className="hidden lg:grid lg:grid-cols-[400px_minmax(0,1fr)] xl:grid-cols-[440px_minmax(0,1fr)] gap-16 items-start"
+          className="hidden lg:grid lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)] gap-12 items-start"
         >
           {/* Left: text list */}
           <div className="flex flex-col gap-10 -mx-3">
-            <DesktopGroup
-              label="Tools"
-              items={toolItems}
-              activeId={activeId}
-              onActivate={setActiveId}
-            />
+            {toolItems.length > 0 && (
+              <DesktopGroup
+                label="Tools"
+                items={toolItems}
+                activeId={activeId}
+                onActivate={setActiveId}
+              />
+            )}
             <DesktopGroup
               label="Culture Amp"
               items={projectItems}
@@ -490,7 +424,7 @@ export default function WorkSection() {
           {/* Right: interactive panel */}
           <div className="sticky top-24">
             {activeId && (
-              <Stage id={activeId} className="p-10">
+              <Stage id={activeId} className={activeId === 'heatmap-comparisons' ? 'p-6' : 'p-10'}>
                 <PanelRenderer activeId={activeId} activeIndex={activeIndex} />
               </Stage>
             )}

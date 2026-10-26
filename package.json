@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@kaizen/component-library": "^16.11.0",
+    "@kaizen/components": "^3.3.17",
+    "@kaizen/design-tokens": "^11.0.21",
     "@radix-ui/react-tooltip": "^1.4.1",
     "framer-motion": "^14.5.0",
     "lucide-react": "^1.61.0",
@@ -16,6 +19,7 @@
     "posthog-js": "^1.438.13",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-intl": "^12.1.5",
     "shiki": "^4.5.0",
     "zustand": "^5.0.15"
   },
