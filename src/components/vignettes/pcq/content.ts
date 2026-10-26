@@ -183,7 +183,7 @@ export const stressGroups: DemographicGroup[] = (() => {
 export type PresetId = 'real' | 'typical' | 'none' | 'privacy' | 'stress' | 'error';
 
 export const presets: { id: PresetId; label: string }[] = [
-  { id: 'real', label: 'Real data' },
+  { id: 'real', label: 'Default' },
   { id: 'typical', label: 'Typical demographic' },
   { id: 'none', label: 'No groups' },
   { id: 'privacy', label: 'Privacy protected' },

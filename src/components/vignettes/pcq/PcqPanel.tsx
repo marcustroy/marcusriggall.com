@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, type Transition } from 'framer-motion';
 import { Button, Heading, Icon } from '@kaizen/components';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import CoachPanel from './CoachPanel';
@@ -49,6 +49,76 @@ interface PlottedPoint {
   kind: 'overall' | 'comparison' | 'group';
 }
 
+interface DotProps {
+  point: PlottedPoint;
+  left: number;
+  top: number;
+  visible: boolean;
+  move: Transition;
+  fade: Transition;
+  onSelect: () => void;
+  onHover: (active: boolean) => void;
+}
+
+// A data point. When zooming, points that leave the chart fade out where they were, and points
+// that enter fade in where they land, so nothing ever travels in from (or out to) the outside.
+function Dot({ point, left, top, visible, move, fade, onSelect, onHover }: DotProps) {
+  const [state, setState] = useState({ left, top, visible, snap: false });
+
+  // Adjust state while rendering (React's pattern for deriving state from props).
+  if (visible) {
+    if (!state.visible || state.left !== left || state.top !== top) {
+      setState({ left, top, visible: true, snap: !state.visible });
+    }
+  } else if (state.visible) {
+    setState({ ...state, visible: false, snap: false });
+  }
+
+  const shown = state.visible;
+  return (
+    <motion.button
+      type="button"
+      aria-label={point.name}
+      tabIndex={shown ? 0 : -1}
+      onClick={onSelect}
+      onMouseEnter={() => onHover(true)}
+      onMouseLeave={() => onHover(false)}
+      onFocus={() => onHover(true)}
+      onBlur={() => onHover(false)}
+      className="absolute rounded-full"
+      style={{
+        width: DOT_SIZE,
+        height: DOT_SIZE,
+        marginLeft: -DOT_SIZE / 2,
+        marginTop: -DOT_SIZE / 2,
+        background: point.color,
+        zIndex: point.kind === 'group' ? 2 : 3,
+        pointerEvents: shown ? 'auto' : 'none',
+      }}
+      initial={false}
+      animate={{
+        left: `${state.left}%`,
+        top: `${state.top}%`,
+        opacity: shown ? 1 : 0,
+        scale: shown ? 1 : 0.4,
+      }}
+      transition={{
+        left: state.snap ? { duration: 0 } : move,
+        top: state.snap ? { duration: 0 } : move,
+        opacity: fade,
+        scale: fade,
+      }}
+    />
+  );
+}
+
+function quadrantOf(point: { x: number; y: number }): QuadrantId {
+  const right = point.x >= THRESHOLD;
+  const top = point.y >= THRESHOLD;
+  if (top) return right ? 'peak-performance' : 'engaged-skepticism';
+  return right ? 'strained' : 'disconnected';
+}
+
 function QuadrantLogo() {
   return (
     <svg width="32" height="30" viewBox="0 0 63 59" fill="none" aria-hidden="true">
@@ -73,6 +143,24 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
   const [coachOpen, setCoachOpen] = useState(false);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const titleRowRef = useRef<HTMLDivElement>(null);
+
+  // Without a close button, the explorer closes on Escape or a click outside it.
+  useEffect(() => {
+    if (!explorerOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!titleRowRef.current?.contains(event.target as Node)) setExplorerOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setExplorerOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [explorerOpen]);
 
   const move = reducedMotion
     ? { duration: 0 }
@@ -128,7 +216,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
     <div className={`kaizen-scope flex w-full items-stretch ${className}`}>
     <div className="relative min-w-0 flex-1 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)]">
       {/* Title, with the state explorer at the right */}
-      <div className="relative flex items-center justify-between gap-3">
+      <div ref={titleRowRef} className="relative flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <QuadrantLogo />
           <Heading tag="h3" variant="heading-5">
@@ -158,19 +246,8 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
               transition={fade}
               className="absolute right-0 top-full z-40 mt-2 w-[320px] rounded-[7px] border-2 border-[var(--color-gray-400)] bg-[var(--color-white)] p-3 shadow-[var(--shadow-large-box-shadow)]"
             >
-              <div className="flex items-center justify-between">
-                <p className="text-[13px] font-semibold">State Explorer</p>
-                <Button
-                  variant="tertiary"
-                  size="small"
-                  hasHiddenLabel
-                  icon={<Icon name="close" isPresentational />}
-                  onPress={() => setExplorerOpen(false)}
-                >
-                  Close state explorer
-                </Button>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-1.5">
+              <p className="mb-2 text-[13px] font-semibold">Data states</p>
+              <div className="grid grid-cols-2 gap-1.5">
                 {presets.map((item) => (
                   <Button
                     key={item.id}
@@ -185,7 +262,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                 ))}
               </div>
               <p className="mb-2 mt-4 border-t border-[var(--color-gray-300)] pt-3 text-[13px] font-semibold">
-                Report
+                Organization quadrant
               </p>
               <div className="grid grid-cols-2 gap-1.5">
                 {quadrants.map((q) => (
@@ -315,6 +392,28 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                 </span>
 
                 <div className="relative h-[300px] w-full">
+                  {/* quadrants: hover to highlight, select to zoom in */}
+                  {!zoomed &&
+                    quadrants.map((q) => {
+                      const left = q.x[0] === 0;
+                      const top = q.y[0] === THRESHOLD;
+                      return (
+                        <button
+                          key={q.id}
+                          type="button"
+                          onClick={() => setZoomed(q.id)}
+                          aria-label={`Zoom into the ${q.label.toLowerCase()} quadrant`}
+                          className="absolute cursor-zoom-in bg-transparent transition-colors duration-150 hover:bg-[var(--color-gray-200)] focus-visible:bg-[var(--color-gray-200)] focus-visible:outline-none"
+                          style={{
+                            left: `${left ? 0 : toLeft(THRESHOLD)}%`,
+                            width: `${left ? toLeft(THRESHOLD) : 100 - toLeft(THRESHOLD)}%`,
+                            top: `${top ? 0 : toTop(THRESHOLD)}%`,
+                            height: `${top ? toTop(THRESHOLD) : 100 - toTop(THRESHOLD)}%`,
+                          }}
+                        />
+                      );
+                    })}
+
                   {/* dashed grid */}
                   <div className="pointer-events-none absolute inset-0" aria-hidden="true">
                     {GRID_STEPS.map((step) => (
@@ -367,61 +466,38 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                     </>
                   )}
 
-                  {/* quadrant labels: click to zoom into a quadrant */}
+                  {/* quadrant labels */}
                   {quadrants.map((q) => {
                     if (zoomed && zoomed !== q.id) return null;
                     const left = q.id === 'engaged-skepticism' || q.id === 'disconnected';
                     const top = q.id === 'engaged-skepticism' || q.id === 'peak-performance';
                     return (
-                      <button
+                      <span
                         key={q.id}
-                        type="button"
-                        onClick={() => setZoomed(zoomed ? null : q.id)}
-                        title={zoomed ? 'Back to full view' : `Zoom into ${q.label.toLowerCase()}`}
-                        className={`absolute z-10 cursor-pointer rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
+                        className={`pointer-events-none absolute z-10 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide ${
                           left ? 'left-0' : 'right-0'
                         } ${top ? 'top-0' : 'bottom-0'}`}
                         style={{ background: CHIP_BG, color: TEAL_TEXT }}
                       >
                         {q.label}
-                      </button>
+                      </span>
                     );
                   })}
 
                   {/* data points */}
-                  {points.map((p) => {
-                    const visible = inDomain(p);
-                    return (
-                      <motion.button
-                        key={p.id}
-                        type="button"
-                        aria-label={p.name}
-                        tabIndex={visible ? 0 : -1}
-                        onMouseEnter={() => setHoveredId(p.id)}
-                        onMouseLeave={() => setHoveredId(null)}
-                        onFocus={() => setHoveredId(p.id)}
-                        onBlur={() => setHoveredId(null)}
-                        className="absolute rounded-full"
-                        style={{
-                          width: DOT_SIZE,
-                          height: DOT_SIZE,
-                          marginLeft: -DOT_SIZE / 2,
-                          marginTop: -DOT_SIZE / 2,
-                          background: p.color,
-                          zIndex: p.kind === 'group' ? 2 : 3,
-                          pointerEvents: visible ? 'auto' : 'none',
-                        }}
-                        initial={false}
-                        animate={{
-                          left: `${toLeft(p.x)}%`,
-                          top: `${toTop(p.y)}%`,
-                          opacity: visible ? 1 : 0,
-                          scale: visible ? 1 : 0.4,
-                        }}
-                        transition={{ left: move, top: move, opacity: fade, scale: fade }}
-                      />
-                    );
-                  })}
+                  {points.map((p) => (
+                    <Dot
+                      key={p.id}
+                      point={p}
+                      left={toLeft(p.x)}
+                      top={toTop(p.y)}
+                      visible={inDomain(p)}
+                      move={move}
+                      fade={fade}
+                      onSelect={() => !zoomed && setZoomed(quadrantOf(p))}
+                      onHover={(active) => setHoveredId(active ? p.id : null)}
+                    />
+                  ))}
 
                   {hovered && (
                     <div
