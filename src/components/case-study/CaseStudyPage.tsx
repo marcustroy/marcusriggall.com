@@ -52,7 +52,7 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
                   </div>
                 }
               >
-                <div className="relative w-full max-w-[680px] mx-auto" style={{ overflow: 'visible' }}>
+                <div className="relative w-full min-w-0" style={{ overflow: 'visible' }}>
                   <Stage id={content.stageId} className={stagePadding(content.stageId)}>
                     {children}
                   </Stage>

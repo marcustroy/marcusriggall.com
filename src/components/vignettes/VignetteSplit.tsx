@@ -79,7 +79,7 @@ export default function VignetteSplit({
             </div>
           )}
         </div>
-        <div className="w-full">
+        <div className="w-full min-w-0">
           <VignetteEntranceProvider delay={0}>
             {children}
           </VignetteEntranceProvider>
@@ -108,7 +108,7 @@ export default function VignetteSplit({
 
       {/* Panel column - animates after text */}
       <motion.div
-        className="w-full overflow-visible"
+        className="w-full min-w-0 overflow-visible"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}

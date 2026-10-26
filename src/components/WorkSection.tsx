@@ -134,14 +134,16 @@ function PanelRenderer({ activeId, activeIndex }: { activeId: string; activeInde
   );
 }
 
-// Panels are designed for the ~700px desktop column. On phones they render
-// at that width and scale down to fit, so they stay intact and tappable.
+// Panels are designed for a ~680px column. Narrower than that they render at that
+// width and scale down to fit, so they stay intact and tappable. Wider than that
+// they simply fill the available width instead of leaving empty space.
 const PANEL_DESIGN_WIDTH = 680;
 
 function ScaledPreview({ children }: { children: React.ReactNode }) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const [outerWidth, setOuterWidth] = useState(PANEL_DESIGN_WIDTH);
   const [height, setHeight] = useState<number>();
 
   useEffect(() => {
@@ -151,6 +153,7 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
     const update = () => {
       const nextScale = Math.min(1, outer.clientWidth / PANEL_DESIGN_WIDTH);
       setScale(nextScale);
+      setOuterWidth(outer.clientWidth);
       setHeight(inner.offsetHeight * nextScale);
     };
     const observer = new ResizeObserver(update);
@@ -163,7 +166,7 @@ function ScaledPreview({ children }: { children: React.ReactNode }) {
     <div ref={outerRef} className="relative overflow-clip" style={{ height }}>
       <div
         ref={innerRef}
-        style={{ width: PANEL_DESIGN_WIDTH, transform: `scale(${scale})`, transformOrigin: 'top left' }}
+        style={{ width: Math.max(PANEL_DESIGN_WIDTH, outerWidth), transform: `scale(${scale})`, transformOrigin: 'top left' }}
       >
         {children}
       </div>
