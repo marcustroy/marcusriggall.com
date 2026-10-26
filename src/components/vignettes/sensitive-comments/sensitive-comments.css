@@ -1,0 +1,66 @@
+/* Match the toggle's label to the toolbar buttons beside it: medium weight, dark text.
+   Kaizen's styles sit in a cascade layer, so these unlayered rules take precedence.
+   The font size is set on the text only. The switch inherits the label's font size and Kaizen
+   positions its knob in em, so shrinking the label itself would push the knob off the track. */
+.sc-toggle {
+  min-width: 0;
+}
+
+.sc-toggle label {
+  font-weight: 500;
+  color: var(--color-purple-800);
+  white-space: normal;
+}
+
+.sc-toggle label [class*='prependedLabel'] {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--color-purple-800);
+  white-space: normal;
+  text-align: right;
+}
+
+/* A smaller switch than Kaizen's default (about 30 x 18px). Scaling with a transform keeps the
+   knob inside the track; the negative margins hand back the space the full-size box would take. */
+.sc-toggle label > [class*='ToggleSwitch_module'] {
+  transform: scale(0.6);
+  transform-origin: right center;
+  margin: -6px 0 -6px -20px;
+  flex-shrink: 0;
+}
+
+/* Compact toolbar buttons so both buttons and the toggle fit on one row. */
+.sc-toolbar-button {
+  --button-padding-x: 8px;
+  --button-font-size: 0.6875rem;
+}
+
+/* Smaller tags in the table. */
+.sc-table [class*='Tag_module_root'] {
+  zoom: 0.8;
+}
+
+/* Kaizen sizes the switch track as content-box, but this site has an unlayered global
+   `* { box-sizing: border-box }` that overrides it, which squashed the track so the knob
+   overshot it when the switch was on. Put the track back the way Kaizen designed it. */
+.kaizen-scope [class*='ToggleSwitch_module_track'] {
+  box-sizing: content-box;
+}
+
+/* Status tags: Kaizen gray-300 for "Needs review", blue-100 for "Not redacted" and orange-100
+   for "Redacted". */
+.sc-tag-gray [class*='Tag_module_root'] {
+  background-color: var(--color-gray-300);
+  border-color: var(--color-gray-300);
+}
+
+.sc-tag-blue [class*='Tag_module_root'] {
+  background-color: var(--color-blue-100);
+  border-color: var(--color-blue-100);
+}
+
+.sc-tag-orange [class*='Tag_module_root'] {
+  background-color: var(--color-orange-100);
+  border-color: var(--color-orange-100);
+}

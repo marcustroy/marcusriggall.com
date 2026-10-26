@@ -9,6 +9,7 @@ import { Stage, stagePadding } from './Stage';
 import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
 import PcqPanel from './vignettes/pcq/PcqPanel';
 import SandboxPanel from './vignettes/prototyping/SandboxPanel';
+import SensitiveCommentsPanel from './vignettes/sensitive-comments/SensitiveCommentsPanel';
 
 interface WorkItem {
   id: string;
@@ -77,21 +78,12 @@ const panelVariants = {
   }),
 };
 
-function ProjectPlaceholder({ id }: { id: string }) {
-  const item = projectItems.find((i) => i.id === id);
-  return (
-    <div className="flex aspect-[4/3] w-full items-center justify-center p-10 text-center">
-      <p className="type-small text-secondary">{item?.title} preview coming soon</p>
-    </div>
-  );
-}
-
 function WorkPanel({ id }: { id: string }) {
   return (
     <>
       {id === 'heatmap-comparisons' && <HeatmapPanel />}
       {id === 'culture-quadrant' && <PcqPanel />}
-      {id === 'sensitive-comments' && <ProjectPlaceholder id={id} />}
+      {id === 'sensitive-comments' && <SensitiveCommentsPanel />}
       {id === 'prototyping' && <SandboxPanel activeStory={null} />}
     </>
   );
