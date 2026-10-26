@@ -58,7 +58,7 @@ export default function DecisionStories({
         {stories.map((story) => (
           <div key={story.id} className="py-4 first:pt-0">
             <h4 className="type-body font-medium text-primary">{story.title}</h4>
-            <p className="type-body text-primary mt-2">{story.story}</p>
+            <p className="type-body text-primary mt-2 whitespace-pre-line">{story.story}</p>
             {renderStoryExtra?.(story)}
           </div>
         ))}

@@ -17,7 +17,7 @@ export default function PrototypingVignette() {
             title={<PrototypingTextPanel />}
           >
             <div
-              className="relative w-full max-w-[680px] mx-auto"
+              className="relative w-full"
               style={{ overflow: 'visible' }}
             >
               <Stage id="prototyping" className={stagePadding('prototyping')}>
