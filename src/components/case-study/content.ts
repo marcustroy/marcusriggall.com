@@ -5,6 +5,8 @@ export interface CaseStudyContent {
   slug: string
   /** Which tinted frame (see Stage) the interactive UI sits in. */
   stageId: string
+  /** Give the interactive UI a wider column, with a narrower write-up beside it. */
+  wideUi?: boolean
   projectName: string
   headline: string
   body: string
@@ -60,6 +62,7 @@ The Heatmap is the most used report, and over the 12 months preceding this work,
   'sensitive-comments-management': {
     slug: 'sensitive-comments-management',
     stageId: 'sensitive-comments',
+    wideUi: true,
     projectName: 'Sensitive Comments Management',
     headline: 'Leveraging AI to identify sensitive comments to be reviewed and redacted',
     body: '',

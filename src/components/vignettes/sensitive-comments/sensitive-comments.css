@@ -9,7 +9,7 @@
 .sc-toggle label {
   font-weight: 500;
   color: var(--color-purple-800);
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .sc-toggle label [class*='prependedLabel'] {
@@ -17,7 +17,7 @@
   line-height: 14px;
   font-weight: 500;
   color: var(--color-purple-800);
-  white-space: normal;
+  white-space: nowrap;
   text-align: right;
 }
 

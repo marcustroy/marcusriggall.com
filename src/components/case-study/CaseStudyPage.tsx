@@ -44,6 +44,7 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
           <VignetteContainer id={content.slug} allowOverflow>
             <motion.div {...fadeInUp}>
               <VignetteSplit
+                columnsClass={content.wideUi ? 'xl:grid-cols-[360px_1fr] 2xl:grid-cols-[360px_1fr]' : undefined}
                 title={
                   <div className="flex flex-col">
                     <h1 className="type-h2 text-primary">{content.headline}</h1>
