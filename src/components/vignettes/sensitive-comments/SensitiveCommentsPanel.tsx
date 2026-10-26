@@ -129,7 +129,7 @@ export default function SensitiveCommentsPanel({ className = '' }: SensitiveComm
 
   return (
     <div
-      className={`kaizen-scope w-full overflow-hidden rounded-[var(--border-solid-border-radius)] border-2 border-[var(--border-solid-border-color)] bg-[var(--color-white)] text-[var(--color-purple-800)] ${className}`}
+      className={`kaizen-scope w-full overflow-hidden rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] text-[var(--color-purple-800)] ${className}`}
     >
       {/* Toolbar */}
       <div className="flex flex-nowrap items-center justify-between gap-2 overflow-x-auto border-b border-[var(--border-solid-border-color)] px-1 py-2">

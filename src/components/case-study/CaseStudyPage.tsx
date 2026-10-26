@@ -6,7 +6,7 @@ import SiteHeaderBar from '@/components/SiteHeaderBar'
 import VignetteContainer from '@/components/vignettes/VignetteContainer'
 import VignetteSplit from '@/components/vignettes/VignetteSplit'
 import DecisionStories from '@/components/vignettes/shared/DecisionStories'
-import { Stage, stagePadding } from '@/components/Stage'
+import { Stage, STAGE_PADDING } from '@/components/Stage'
 import { fadeInUp } from '@/lib/animations'
 import type { CaseStudyContent } from './content'
 
@@ -54,7 +54,7 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
                 }
               >
                 <div className="relative w-full min-w-0" style={{ overflow: 'visible' }}>
-                  <Stage id={content.stageId} className={stagePadding(content.stageId)}>
+                  <Stage id={content.stageId} className={STAGE_PADDING}>
                     {children}
                   </Stage>
                 </div>
