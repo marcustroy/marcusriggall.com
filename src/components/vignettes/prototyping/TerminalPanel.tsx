@@ -255,7 +255,7 @@ export default function TerminalPanel({
               <div className="text-gray-500 mb-2">Try a command:</div>
               <div className="flex flex-wrap gap-2">
                 <ActionButton onClick={onPromptName} disabled={isAnimating}>
-                  <code>/add-designer</code>
+                  <code>/add-user</code>
                 </ActionButton>
                 <ActionButton onClick={onAddPrototype} disabled={isAnimating}>
                   <code>/add-prototype</code>
@@ -288,7 +288,7 @@ export default function TerminalPanel({
                 >
                   {showAddDesignerButton && (
                     <ActionButton onClick={onPromptName} disabled={isAnimating}>
-                      <code>/add-designer</code>
+                      <code>/add-user</code>
                     </ActionButton>
                   )}
                   {showAddPrototypeButton && (

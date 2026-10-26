@@ -105,7 +105,7 @@ export function useSandboxDemo() {
       customDesignerName: '',
     }));
 
-    addMessage({ type: 'command', text: '/add-designer' });
+    addMessage({ type: 'command', text: '/add-user' });
   }, [state.phase, clearTimeouts, addMessage]);
 
   // Step 2: Submit the name and run the animation
@@ -306,6 +306,7 @@ export function useSandboxDemo() {
     name: state.customDesignerName || 'You',
     initials: getInitials(state.customDesignerName || 'You'),
     avatarColor: getColorFromName(state.customDesignerName || 'You'),
+    role: 'Designer',
   };
 
   return {
