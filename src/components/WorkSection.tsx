@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
+import { Stage, stagePadding } from './Stage';
 import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
 import PcqPanel from './vignettes/pcq/PcqPanel';
+import SandboxPanel from './vignettes/prototyping/SandboxPanel';
 
 interface WorkItem {
   id: string;
@@ -26,19 +28,28 @@ const toolItems: WorkItem[] = [];
 
 const projectItems: WorkItem[] = [
   {
+    id: 'prototyping',
+    title: 'Design Sandbox',
+    description: 'Part of the small team of designers who maintained and improved an internal repository to make AI prototyping faster and easier for designers and product managers',
+    href: '/design-sandbox',
+  },
+  {
     id: 'heatmap-comparisons',
     title: 'Heatmap Survey Comparisons',
     description: 'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
+    href: '/heatmap-survey-comparisons',
   },
   {
     id: 'culture-quadrant',
     title: 'Performance Culture Quadrant',
     description: 'Connecting engagement and performance confidence to help customers understand their culture and identify the path to Peak Performance',
+    href: '/performance-culture-quadrant',
   },
   {
     id: 'sensitive-comments',
     title: 'Sensitive Comments Management',
     description: 'Leveraging AI to identify sensitive comments to be reviewed and redacted',
+    href: '/sensitive-comments-management',
   },
 ];
 
@@ -81,6 +92,7 @@ function WorkPanel({ id }: { id: string }) {
       {id === 'heatmap-comparisons' && <HeatmapPanel />}
       {id === 'culture-quadrant' && <PcqPanel />}
       {id === 'sensitive-comments' && <ProjectPlaceholder id={id} />}
+      {id === 'prototyping' && <SandboxPanel activeStory={null} />}
     </>
   );
 }
@@ -169,41 +181,6 @@ function GroupLabel({ children }: { children: string }) {
 
 // Mobile stand-in for the desktop hover: the item crossing the middle of the
 // screen becomes active and its preview comes into focus.
-// Each preview sits on a softly tinted backdrop in its project's colour.
-const STAGE_TINTS: Record<string, string> = {
-  'heatmap-comparisons': '#DFEFEE',
-  'culture-quadrant': '#E4ECF6',
-  'sensitive-comments': '#E9EEDF',
-};
-
-// Every panel sits on white so the tint never shows through transparent chrome.
-// Panels made of loose parts (no card of their own) also get padding, so they
-// read as one surface under the shadow.
-const UNFRAMED_PANELS = new Set<string>();
-
-function Stage({ id, className = '', children }: { id: string; className?: string; children: React.ReactNode }) {
-  return (
-    <motion.div
-      className={`relative rounded-2xl ${className}`}
-      initial={false}
-      animate={{ backgroundColor: STAGE_TINTS[id] ?? '#ECEDF0' }}
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-    >
-      {/* Soft top light so the tint reads as a lit surface, not a flat fill */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_80%_at_50%_0%,rgba(255,255,255,0.65),transparent_65%)]"
-      />
-      <div
-        className={`relative shadow-[0_1px_2px_rgba(0,0,0,0.05),0_8px_16px_-8px_rgba(0,0,0,0.08),0_32px_64px_-24px_rgba(0,0,0,0.22)] ${
-          UNFRAMED_PANELS.has(id) ? 'rounded-xl bg-white p-6' : 'rounded-lg bg-white'
-        }`}
-      >
-        {children}
-      </div>
-    </motion.div>
-  );
-}
 
 function MobileItem({
   item,
@@ -424,7 +401,7 @@ export default function WorkSection() {
           {/* Right: interactive panel */}
           <div className="sticky top-24">
             {activeId && (
-              <Stage id={activeId} className={activeId === 'heatmap-comparisons' ? 'p-6' : 'p-10'}>
+              <Stage id={activeId} className={stagePadding(activeId)}>
                 <PanelRenderer activeId={activeId} activeIndex={activeIndex} />
               </Stage>
             )}

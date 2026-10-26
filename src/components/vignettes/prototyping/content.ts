@@ -11,6 +11,7 @@ export interface DesignerItem {
   name: string;
   initials: string;
   avatarColor: string;
+  role: 'Designer' | 'Product manager';
 }
 
 export interface PrototypingContent {
@@ -35,23 +36,23 @@ export interface PrototypingContent {
 export const prototypingContent: PrototypingContent = {
   // Left panel content
   projectName: 'Design Sandbox',
-  headline: 'Built an internal repository to make AI prototyping faster and easier',
-  body: 'Designers had no way to deploy or share AI prototypes. I built the infrastructure myself and designed onboarding so anyone could start with a single slash command. 15 designers and PMs adopted it, and one team used it to prototype with real survey data for executive demos that got a major release funded.',
+  headline: 'Maintained and improved an internal repository to make AI prototyping faster and easier',
+  body: 'Designers had no way to deploy or share AI prototypes. As part of a small team of designers, I helped maintain and improve the infrastructure and the onboarding so anyone could start with a single slash command. 15 designers and PMs adopted it. I used the Design Sandbox to prototype the Performance Culture Quadrant experience with real survey data, and the executive demos that followed resulted in a major release being funded.',
 
   // Decision stories
   decisionStories: [
     {
       id: 'build-it-yourself',
-      title: 'Why did you build this?',
+      title: 'Why does this exist?',
       story:
-        'I was building a lot of AI prototypes and needed a way to deploy and share them. But beyond solving my own problem, I wanted to build a discipline of prototyping across the design team. There wasn\'t dedicated engineering for this, but I had the skills to build the infrastructure myself. Making it easy for other designers to get started meant prototyping could become a shared practice, not just something one person did.',
+        'Designers were building a lot of AI prototypes and needed a way to deploy and share them. Beyond solving that, the aim was to build a discipline of prototyping across the design team. There wasn\'t dedicated engineering for this, so a small group of designers maintained the infrastructure themselves. Making it easy for other designers and product managers to get started meant prototyping could become a shared practice, not just something one person did.',
       highlightSection: 1,
     },
     {
       id: 'onboarding',
-      title: 'How did I make it easy to adopt?',
+      title: 'How did we make it easy to adopt?',
       story:
-        'I designed custom slash commands like /add-designer and /add-prototype that scaffolded everything for you. Designers didn\'t need to learn how the system worked or touch any infrastructure. They could just run a command and start prototyping. Lowering that barrier was key to getting the whole team on board.',
+        'We designed custom slash commands like /add-user and /add-prototype that scaffolded everything for you. Designers didn\'t need to learn how the system worked or touch any infrastructure. They could just run a command and start prototyping. Lowering that barrier was key to getting the whole team on board.',
       highlightSection: 2,
     },
   ],
@@ -67,12 +68,12 @@ export const prototypingContent: PrototypingContent = {
     { id: 6, name: '1-on-1 Prep', thumbnail: '#d9d9d9' },
   ],
   designers: [
-    { id: 1, name: 'Sarah Chen', initials: 'SC', avatarColor: '#EC4899' },
-    { id: 2, name: 'Marcus Johnson', initials: 'MJ', avatarColor: '#6366F1' },
-    { id: 3, name: 'Priya Patel', initials: 'PP', avatarColor: '#10B981' },
-    { id: 4, name: 'Alex Kim', initials: 'AK', avatarColor: '#F59E0B' },
-    { id: 5, name: 'Jordan Rivera', initials: 'JR', avatarColor: '#8B5CF6' },
-    { id: 6, name: 'Taylor Brooks', initials: 'TB', avatarColor: '#14B8A6' },
+    { id: 1, name: 'Nadia Okafor', initials: 'NO', avatarColor: '#EC4899', role: 'Designer' },
+    { id: 2, name: 'Liam Harper', initials: 'LH', avatarColor: '#6366F1', role: 'Product manager' },
+    { id: 3, name: 'Mei Tanaka', initials: 'MT', avatarColor: '#10B981', role: 'Designer' },
+    { id: 4, name: 'Rafael Costa', initials: 'RC', avatarColor: '#F59E0B', role: 'Product manager' },
+    { id: 5, name: 'Zara Hussain', initials: 'ZH', avatarColor: '#8B5CF6', role: 'Designer' },
+    { id: 6, name: 'Owen Gallagher', initials: 'OG', avatarColor: '#14B8A6', role: 'Product manager' },
   ],
   adoptionStats: {
     designers: 15,

@@ -83,7 +83,7 @@ function DesignerCard({
         <p className="text-[13px] sm:text-sm text-neutral-800 font-medium truncate leading-tight !m-0">
           {designer.name}
         </p>
-        <p className="text-[11px] text-neutral-400 truncate !m-0">Designer</p>
+        <p className="text-[11px] text-neutral-400 truncate !m-0">{designer.role}</p>
       </div>
 
       {/* Hover chevron */}
@@ -179,7 +179,7 @@ function SolutionState({
                   <DesignerCard key={designer.id} designer={designer} />
                 ))}
 
-                {/* New designer card - appears after /add-designer */}
+                {/* New designer card - appears after /add-user */}
                 <AnimatePresence>
                   {demo.showNewDesigner && (
                     <DesignerCard

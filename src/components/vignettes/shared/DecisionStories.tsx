@@ -16,6 +16,8 @@ interface DecisionStoriesProps {
   stories: DecisionStory[];
   onActiveStoryChange?: (story: DecisionStory | null) => void;
   renderStoryExtra?: (story: DecisionStory) => React.ReactNode;
+  /** Show every story open, with no toggling or hover highlighting. */
+  alwaysExpanded?: boolean;
 }
 
 function ChevronIcon({ className }: { className?: string }) {
@@ -43,11 +45,26 @@ export default function DecisionStories({
   stories,
   onActiveStoryChange,
   renderStoryExtra,
+  alwaysExpanded = false,
 }: DecisionStoriesProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const reducedMotion = useReducedMotion();
 
   if (stories.length === 0) return null;
+
+  if (alwaysExpanded) {
+    return (
+      <div className="mt-6 divide-y divide-black/8">
+        {stories.map((story) => (
+          <div key={story.id} className="py-4 first:pt-0">
+            <h4 className="type-body font-medium text-primary">{story.title}</h4>
+            <p className="type-body text-primary mt-2">{story.story}</p>
+            {renderStoryExtra?.(story)}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const handleToggle = (story: DecisionStory) => {
     if (expandedId === story.id) {
