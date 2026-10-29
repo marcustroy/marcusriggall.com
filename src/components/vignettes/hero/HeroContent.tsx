@@ -6,7 +6,7 @@ import { heroContent, introContent } from './content';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import { timing, timingReduced } from '@/lib/animations';
 import TextReveal from './TextReveal';
-import { LinkedInIcon, GitHubIcon } from '@/components/SiteHeaderBar';
+import { LinkedInIcon, GitHubIcon, ResumeButton, RESUME_URL } from '@/components/SiteHeaderBar';
 import { trackExternalLinkClicked } from '@/lib/analytics';
 
 const LINKEDIN_URL = 'https://www.linkedin.com/in/marcusriggall';
@@ -62,6 +62,7 @@ export default function HeroContent() {
 
       {/* Social links */}
       <div className="flex items-center gap-4">
+        <ResumeButton onClick={() => trackExternalLinkClicked('hero-resume', RESUME_URL)} />
         <a
           href={LINKEDIN_URL}
           target="_blank"

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "resume:pdf": "bash scripts/generate-resume-pdf.sh"
   },
   "dependencies": {
     "@kaizen/component-library": "^16.11.0",
