@@ -6,7 +6,8 @@ import SiteHeaderBar from '@/components/SiteHeaderBar'
 import VignetteContainer from '@/components/vignettes/VignetteContainer'
 import VignetteSplit from '@/components/vignettes/VignetteSplit'
 import DecisionStories from '@/components/vignettes/shared/DecisionStories'
-import { Stage, stagePadding } from '@/components/Stage'
+import LinkedText from '@/components/vignettes/shared/LinkedText'
+import { Stage, STAGE_PADDING } from '@/components/Stage'
 import { fadeInUp } from '@/lib/animations'
 import type { CaseStudyContent } from './content'
 
@@ -48,13 +49,17 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
                 title={
                   <div className="flex flex-col">
                     <h1 className="type-h2 text-primary">{content.headline}</h1>
-                    {content.body && <p className="type-body text-primary mt-5">{content.body}</p>}
+                    {content.body && (
+                      <p className="type-body text-primary mt-5 whitespace-pre-line">
+                        <LinkedText text={content.body} />
+                      </p>
+                    )}
                     <DecisionStories stories={content.decisionStories} alwaysExpanded />
                   </div>
                 }
               >
                 <div className="relative w-full min-w-0" style={{ overflow: 'visible' }}>
-                  <Stage id={content.stageId} className={stagePadding(content.stageId)}>
+                  <Stage id={content.stageId} className={STAGE_PADDING}>
                     {children}
                   </Stage>
                 </div>

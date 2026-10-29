@@ -11,3 +11,38 @@
 .pcq-nowrap {
   white-space: nowrap;
 }
+
+/* Menu buttons have a 1px light grey border; the selected one is filled soft grey. */
+.pcq-state-button {
+  --button-border-width: 1px;
+  --button-border-color: var(--color-gray-300);
+}
+
+.pcq-state-button[data-hovered] {
+  --button-bg-color: var(--color-gray-100);
+  --button-border-color: var(--color-gray-300);
+}
+
+.pcq-state-button.pcq-state-selected,
+.pcq-state-button.pcq-state-selected[data-hovered] {
+  --button-bg-color: var(--color-gray-200);
+  --button-border-color: var(--color-gray-200);
+  --button-text-color: var(--color-purple-800);
+  font-weight: 600;
+}
+
+/* The Explore states button: a floating pill with a soft grey border and drop shadow. */
+.pcq-explore-button {
+  --button-bg-color: var(--color-white);
+  --button-border-color: var(--color-gray-300);
+  --button-border-width: 1px;
+  --button-text-color: var(--color-purple-800);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.pcq-explore-button[data-hovered],
+.pcq-explore-button[aria-expanded='true'] {
+  --button-bg-color: var(--color-gray-100);
+  --button-border-color: var(--color-gray-300);
+}

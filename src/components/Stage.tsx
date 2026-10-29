@@ -15,9 +15,8 @@ export const STAGE_TINTS: Record<string, string> = {
 // read as one surface under the shadow.
 const UNFRAMED_PANELS = new Set(['prototyping']);
 
-// The table-based previews need the room, so their frames are tighter.
-const TIGHT_STAGES = new Set(['heatmap-comparisons', 'sensitive-comments']);
-export const stagePadding = (id: string) => (TIGHT_STAGES.has(id) ? 'p-6' : 'p-10');
+// Every preview sits the same distance from the edge of its coloured frame.
+export const STAGE_PADDING = 'p-6';
 
 export function Stage({ id, className = '', children }: { id: string; className?: string; children: React.ReactNode }) {
   return (

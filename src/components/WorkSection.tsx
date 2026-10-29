@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
-import { Stage, stagePadding } from './Stage';
+import { Stage, STAGE_PADDING } from './Stage';
 import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
 import PcqPanel from './vignettes/pcq/PcqPanel';
 import SandboxPanel from './vignettes/prototyping/SandboxPanel';
@@ -37,13 +37,13 @@ const projectItems: WorkItem[] = [
   {
     id: 'heatmap-comparisons',
     title: 'Heatmap Survey Comparisons',
-    description: 'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
+    description: 'Comparisons across surveys help customers understand how results change over time and across teams in a single view',
     href: '/heatmap-survey-comparisons',
   },
   {
     id: 'culture-quadrant',
     title: 'Performance Culture Quadrant',
-    description: 'Connecting engagement and performance confidence to help customers understand their culture and identify the path to Peak Performance',
+    description: 'Connecting Engaging Culture and Performance Confidence to help customers understand their organisations culture and identify the path to Peak Performance',
     href: '/performance-culture-quadrant',
   },
   {
@@ -288,22 +288,15 @@ function DesktopGroup({
         const className = 'group text-left py-3 px-3 rounded-lg cursor-pointer transition-colors duration-200 relative block';
         const inner = (
           <>
-            <AnimatePresence>
-              {isActive && (
-                <motion.div
-                  layoutId="work-active-highlight"
-                  className="absolute inset-0 rounded-lg bg-neutral-200/80"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    ...panelTransition,
-                    opacity: { duration: 0.12, ease: 'easeOut' },
-                  }}
-                  aria-hidden="true"
-                />
-              )}
-            </AnimatePresence>
+            {/* One highlight that slides between items. It never fades, so it can't disappear mid-move. */}
+            {isActive && (
+              <motion.div
+                layoutId="work-active-highlight"
+                className="absolute inset-0 rounded-lg bg-neutral-200/80"
+                transition={panelTransition}
+                aria-hidden="true"
+              />
+            )}
             <div className="relative z-10 flex items-baseline gap-2">
               <h3 className="type-h3 !m-0">{item.title}</h3>
               {item.href && isExternal(item.href) && (
@@ -396,7 +389,7 @@ export default function WorkSection() {
           {/* Right: interactive panel */}
           <div className="sticky top-24">
             {activeId && (
-              <Stage id={activeId} className={stagePadding(activeId)}>
+              <Stage id={activeId} className={STAGE_PADDING}>
                 <PanelRenderer activeId={activeId} activeIndex={activeIndex} />
               </Stage>
             )}

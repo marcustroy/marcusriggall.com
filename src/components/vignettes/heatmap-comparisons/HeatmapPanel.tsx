@@ -104,7 +104,7 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   );
 
   return (
-    <div className={`kaizen-scope w-full overflow-hidden rounded-[var(--border-solid-border-radius)] border-2 border-[var(--border-solid-border-color)] bg-[var(--color-white)] ${className}`}>
+    <div className={`kaizen-scope w-full overflow-hidden rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] ${className}`}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 border-b border-[var(--border-solid-border-color)] px-4 py-3">
         <div className="flex items-center gap-2">

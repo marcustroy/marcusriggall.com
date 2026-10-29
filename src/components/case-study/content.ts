@@ -56,8 +56,32 @@ The Heatmap is the most used report, and over the 12 months preceding this work,
     projectName: 'Performance Culture Quadrant',
     headline:
       'Connecting engagement and performance confidence to help customers understand their culture and identify the path to Peak Performance',
-    body: '',
-    decisionStories: [],
+    body: `Engagement used to be the headline measure of a survey, but customers were searching for a more holistic view of their organisation. The Performance Culture Quadrant combines the two outcomes that now matter most, Engaging Culture and Performance Confidence, into one view giving customers a holistic picture of the employee experience in their organization.
+
+I led product design for the release of the Performance Culture Quadrant, partnering with People Science, Product, Product Marketing, Engineering and Data Science to transform people science research into a scaleable and useable experience.
+
+[The Performance Culture Quadrant](https://www.cultureamp.com/platform/engage/performance-culture-quadrant) and [the science behind it](https://www.cultureamp.com/blog/science-behind-pcq)
+`,
+    decisionStories: [
+      {
+        id: 'new-way-to-understand-results',
+        title: 'A new way to understand results',
+        story: `The Performance Culture Diagnostic opens up a new way to understand survey results, and it changes what customers should be looking at
+• Traditional engagement is no longer the key outcome. The focus is on Performance Confidence and Engaging Culture to understand employee sentiment in the organisations future and day-to-day experience at work.
+• Scores are plotted on a quadrant that allows customers to understand how their organisation is scoring on both outcomes, allowing organisations to identify groups with an outlying experience
+
+The Performance Culture Quadrant is how customers view and analysis the shift from surveying to measure only Engagement, to measuring Engagement and Performance Confidence,`,
+      },
+      {
+        id: 'approach',
+        title: 'Approach',
+        story: `We introduced the Performance Culture Quadrant in phases to to provide value to customers early.
+
+Initial design concepts were created in Figma to allow for ease of collaboration, but quickly moved to prototyping using Claude Code and the [Design Sandbox](/design-sandbox) to create an experience that used real survey data while providing an experience that felt like using the Culture Amp Product.
+
+Leveraging AI allowed prototypes to be created and iterated on quickly, with building on top of the existing codebase allowing for testing an experience that felt real for participants.`,
+      }
+    ],
   },
   'sensitive-comments-management': {
     slug: 'sensitive-comments-management',
@@ -65,7 +89,7 @@ The Heatmap is the most used report, and over the 12 months preceding this work,
     wideUi: true,
     projectName: 'Sensitive Comments Management',
     headline: 'Leveraging AI to identify sensitive comments to be reviewed and redacted',
-    body: '',
+    body: 'Case study in progress',
     decisionStories: [],
   },
 }

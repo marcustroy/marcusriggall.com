@@ -5,7 +5,7 @@ import SandboxPanel from './SandboxPanel';
 import PrototypingTextPanel from './PrototypingTextPanel';
 import VignetteContainer from '@/components/vignettes/VignetteContainer';
 import VignetteSplit from '@/components/vignettes/VignetteSplit';
-import { Stage, stagePadding } from '@/components/Stage';
+import { Stage, STAGE_PADDING } from '@/components/Stage';
 import { fadeInUp } from '@/lib/animations';
 
 export default function PrototypingVignette() {
@@ -20,7 +20,7 @@ export default function PrototypingVignette() {
               className="relative w-full"
               style={{ overflow: 'visible' }}
             >
-              <Stage id="prototyping" className={stagePadding('prototyping')}>
+              <Stage id="prototyping" className={STAGE_PADDING}>
                 <SandboxPanel activeStory={null} />
               </Stage>
             </div>
