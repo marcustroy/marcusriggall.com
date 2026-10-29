@@ -17,6 +17,20 @@ export function GitHubIcon({ className = 'h-5 w-5' }: { className?: string }) {
   );
 }
 
+export const RESUME_URL = '/resume';
+
+export function ResumeButton({ onClick }: { onClick?: () => void }) {
+  return (
+    <Link
+      href={RESUME_URL}
+      className="type-small font-medium text-black rounded-lg px-3 py-1 hover:bg-neutral-200/80 transition-colors duration-200"
+      onClick={onClick}
+    >
+      Resume
+    </Link>
+  );
+}
+
 // Shared bar for every page header: name on the left, LinkedIn and GitHub on the right.
 // On the homepage the MR monogram scrolls to top; elsewhere the name links home.
 export default function SiteHeaderBar({
@@ -46,6 +60,7 @@ export default function SiteHeaderBar({
         <Link href="/" className={nameClassName}>Marcus Riggall</Link>
       )}
       <div className="flex items-center gap-4">
+        <ResumeButton />
         <a
           href="https://www.linkedin.com/in/marcusriggall"
           target="_blank"
