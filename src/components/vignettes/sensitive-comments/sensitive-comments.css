@@ -41,13 +41,6 @@
   zoom: 0.8;
 }
 
-/* Kaizen sizes the switch track as content-box, but this site has an unlayered global
-   `* { box-sizing: border-box }` that overrides it, which squashed the track so the knob
-   overshot it when the switch was on. Put the track back the way Kaizen designed it. */
-.kaizen-scope [class*='ToggleSwitch_module_track'] {
-  box-sizing: content-box;
-}
-
 /* Status tags: Kaizen gray-300 for "Needs review", blue-100 for "Not redacted" and orange-100
    for "Redacted". */
 .sc-tag-gray [class*='Tag_module_root'] {

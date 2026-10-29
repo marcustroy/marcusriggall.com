@@ -188,7 +188,6 @@ export const presets: { id: PresetId; label: string }[] = [
   { id: 'none', label: 'No groups' },
   { id: 'privacy', label: 'Privacy protected' },
   { id: 'stress', label: 'Stress test' },
-  { id: 'error', label: 'Error state' },
 ];
 
 export const overallScores: Record<QuadrantId, { we: string; pc: string }> = {

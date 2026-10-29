@@ -43,10 +43,11 @@ export const prototypingContent: PrototypingContent = {
   decisionStories: [
     {
       id: 'build-it-yourself',
-      title: 'Why does this exist?',
+      title: 'Why did we build this?',
       story:
         'Designers were building a lot of AI prototypes and needed a way to deploy and share them. Beyond solving that, the aim was to build a discipline of prototyping across the design team. There wasn\'t dedicated engineering for this, so a small group of designers maintained the infrastructure themselves. Making it easy for other designers and product managers to get started meant prototyping could become a shared practice, not just something one person did.',
       highlightSection: 1,
+      hideDividerBelow: true,
     },
     {
       id: 'onboarding',

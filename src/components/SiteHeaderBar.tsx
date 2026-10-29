@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export function LinkedInIcon({ className = 'h-5 w-5' }: { className?: string }) {
@@ -17,7 +18,7 @@ export function GitHubIcon({ className = 'h-5 w-5' }: { className?: string }) {
 }
 
 // Shared bar for every page header: name on the left, LinkedIn and GitHub on the right.
-// On the homepage the name scrolls to top; elsewhere it links home.
+// On the homepage the MR monogram scrolls to top; elsewhere the name links home.
 export default function SiteHeaderBar({
   onHome = false,
   onLinkedInClick,
@@ -32,7 +33,15 @@ export default function SiteHeaderBar({
   return (
     <div className="max-w-[1200px] mx-auto h-14 flex items-center justify-between">
       {onHome ? (
-        <a href="#" className={nameClassName}>Marcus Riggall</a>
+        <a href="#" aria-label="Marcus Riggall, back to top" className="block hover:opacity-70 transition-opacity">
+          <Image
+            src="/avatars/mr-monogram.png"
+            alt="Marcus Riggall"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-full"
+          />
+        </a>
       ) : (
         <Link href="/" className={nameClassName}>Marcus Riggall</Link>
       )}

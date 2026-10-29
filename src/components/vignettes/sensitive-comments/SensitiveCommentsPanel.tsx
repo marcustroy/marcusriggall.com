@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Icon, LoadingParagraph, Tag, ToggleSwitchField } from '@kaizen/components';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import '@/styles/kaizen.css';
+import '@/styles/kaizen-fixes.css';
 import '../heatmap-comparisons/heatmap.css';
 import './sensitive-comments.css';
 import {

@@ -227,7 +227,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
           <Button
             variant="secondary"
             size="small"
-            className="pcq-nowrap"
+            className="pcq-nowrap pcq-explore-button"
             icon={<Icon name="tune" isPresentational />}
             onPress={() => setExplorerOpen((open) => !open)}
             aria-expanded={explorerOpen}
@@ -244,7 +244,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={fade}
-              className="absolute right-0 top-full z-40 mt-2 w-[320px] rounded-[7px] border-2 border-[var(--color-gray-400)] bg-[var(--color-white)] p-3 shadow-[var(--shadow-large-box-shadow)]"
+              className="absolute right-0 top-full z-40 mt-2 w-[320px] rounded-[7px] bg-[var(--color-white)] p-3 shadow-[var(--shadow-large-box-shadow)]"
             >
               <p className="mb-2 text-[13px] font-semibold">Data states</p>
               <div className="grid grid-cols-2 gap-1.5">
@@ -253,8 +253,9 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                     key={item.id}
                     size="small"
                     isFullWidth
-                    className="pcq-state-button"
-                    variant={preset === item.id ? 'primary' : 'secondary'}
+                    className={`pcq-state-button ${preset === item.id ? 'pcq-state-selected' : ''}`}
+                    variant="secondary"
+                    aria-pressed={preset === item.id}
                     onPress={() => choosePreset(item.id)}
                   >
                     {item.label}
@@ -270,8 +271,9 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                     key={q.id}
                     size="small"
                     isFullWidth
-                    className="pcq-state-button"
-                    variant={quadrantId === q.id ? 'primary' : 'secondary'}
+                    className={`pcq-state-button ${quadrantId === q.id ? 'pcq-state-selected' : ''}`}
+                    variant="secondary"
+                    aria-pressed={quadrantId === q.id}
                     onPress={() => setQuadrantId(q.id)}
                   >
                     {q.label}

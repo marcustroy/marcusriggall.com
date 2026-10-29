@@ -37,13 +37,13 @@ const projectItems: WorkItem[] = [
   {
     id: 'heatmap-comparisons',
     title: 'Heatmap Survey Comparisons',
-    description: 'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
+    description: 'Comparisons across surveys help customers understand how results change over time and across teams in a single view',
     href: '/heatmap-survey-comparisons',
   },
   {
     id: 'culture-quadrant',
     title: 'Performance Culture Quadrant',
-    description: 'Connecting engagement and performance confidence to help customers understand their culture and identify the path to Peak Performance',
+    description: 'Connecting Engaging Culture and Performance Confidence to help customers understand their organisations culture and identify the path to Peak Performance',
     href: '/performance-culture-quadrant',
   },
   {

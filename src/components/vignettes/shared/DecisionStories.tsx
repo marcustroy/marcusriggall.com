@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReducedMotion } from '@/lib/useReducedMotion';
+import LinkedText from './LinkedText';
 
 export interface DecisionStory {
   id: string;
@@ -10,6 +11,8 @@ export interface DecisionStory {
   story: string;
   highlightSection?: number;
   toggleLabels?: string[];
+  /** In always-expanded lists, drop the divider line below this story. */
+  hideDividerBelow?: boolean;
 }
 
 interface DecisionStoriesProps {
@@ -56,9 +59,11 @@ export default function DecisionStories({
     return (
       <div className="mt-6 divide-y divide-black/8">
         {stories.map((story) => (
-          <div key={story.id} className="py-4 first:pt-0">
+          <div key={story.id} className={`py-4 first:pt-0 ${story.hideDividerBelow ? 'border-b-0' : ''}`}>
             <h4 className="type-body font-medium text-primary">{story.title}</h4>
-            <p className="type-body text-primary mt-2 whitespace-pre-line">{story.story}</p>
+            <p className="type-body text-primary mt-2 whitespace-pre-line">
+              <LinkedText text={story.story} />
+            </p>
             {renderStoryExtra?.(story)}
           </div>
         ))}
