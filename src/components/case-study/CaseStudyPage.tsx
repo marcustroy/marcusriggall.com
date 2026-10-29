@@ -50,7 +50,7 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
                   <div className="flex flex-col">
                     <h1 className="type-h2 text-primary">{content.headline}</h1>
                     {content.body && (
-                      <p className="type-body text-primary mt-5">
+                      <p className="type-body text-primary mt-5 whitespace-pre-line">
                         <LinkedText text={content.body} />
                       </p>
                     )}

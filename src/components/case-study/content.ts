@@ -59,7 +59,9 @@ The Heatmap is the most used report, and over the 12 months preceding this work,
     body: `Engagement used to be the headline measure of a survey, but customers were searching for a more holistic view of their organisation. The Performance Culture Quadrant combines the two outcomes that now matter most, Engaging Culture and Performance Confidence, into one view giving customers a holistic picture of the employee experience in their organization.
 
 I led product design for the release of the Performance Culture Quadrant, partnering with People Science, Product, Product Marketing, Engineering and Data Science to transform people science research into a scaleable and useable experience.
-    `,
+
+[The Performance Culture Quadrant](https://www.cultureamp.com/platform/engage/performance-culture-quadrant) and [the science behind it](https://www.cultureamp.com/blog/science-behind-pcq)
+`,
     decisionStories: [
       {
         id: 'new-way-to-understand-results',
