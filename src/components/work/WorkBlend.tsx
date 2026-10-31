@@ -55,10 +55,16 @@ export default function WorkBlend() {
               >
                 <div className="overflow-hidden">
                   <div
-                    className={`grid gap-6 pb-0 pl-9 transition-opacity duration-500 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] md:gap-10 md:pl-[60px] ${
+                    className={`grid gap-6 pb-0 pl-9 transition-opacity duration-500 md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] md:gap-10 md:pl-[60px] ${
                       isOpen ? 'opacity-100 delay-300' : 'opacity-0'
                     }`}
                   >
+                    <div className="hidden md:block">
+                      {/* Every project shows the same height of its UI (the Design Sandbox's whole UI, with its padding), so open rows match */}
+                      <div className="aspect-[660/395] overflow-hidden rounded-t-xl border border-b-0 border-[var(--color-gray-400)] bg-white">
+                        <ProjectPreview id={project.id} showcase />
+                      </div>
+                    </div>
                     <div className="pb-8">
                       <p className="type-small max-w-[420px]">{project.description}</p>
                       <p className="type-small mt-6 flex items-center gap-2 font-medium" style={{ color: project.accent }}>
@@ -67,12 +73,6 @@ export default function WorkBlend() {
                           <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </p>
-                    </div>
-                    <div className="hidden md:block">
-                      {/* Every project shows the same height of its UI (the Design Sandbox's whole UI, with its padding), so open rows match */}
-                      <div className="aspect-[660/395] overflow-hidden rounded-t-xl border border-b-0 border-[var(--color-gray-400)] bg-white">
-                        <ProjectPreview id={project.id} showcase />
-                      </div>
                     </div>
                   </div>
                 </div>
