@@ -62,7 +62,7 @@ export function ScaledPreview({ children }: { children: React.ReactNode }) {
 export function ProjectPreview({ id, showcase = false }: { id: string; showcase?: boolean }) {
   return (
     // The Design Sandbox is a set of loose parts, so like its frame on the home list it gets padding around it.
-    <div className={`pointer-events-none select-none ${id === 'prototyping' ? 'p-6' : ''}`} aria-hidden="true" inert>
+    <div data-project-preview className={`pointer-events-none select-none ${id === 'prototyping' ? 'p-6' : ''}`} aria-hidden="true" inert>
       <ScaledPreview>
         <WorkPanel id={id} showcase={showcase} />
       </ScaledPreview>

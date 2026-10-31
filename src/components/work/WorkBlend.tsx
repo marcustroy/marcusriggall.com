@@ -18,7 +18,7 @@ export default function WorkBlend() {
         const isOpen = open === index;
         const dimmed = !isOpen;
         return (
-          <div key={project.id} className="relative -mx-3 overflow-hidden md:-mx-8" onMouseEnter={() => setOpen(index)}>
+          <div key={project.id} data-project-row className="relative -mx-3 overflow-hidden md:-mx-8" onMouseEnter={() => setOpen(index)}>
             {/* The colour sweeps in from the left when the row opens, and back out when another one does */}
             <span
               aria-hidden="true"
@@ -36,6 +36,7 @@ export default function WorkBlend() {
               <div className="flex items-baseline gap-4 py-6 md:gap-8 md:py-8">
                 <span className="type-small w-7 shrink-0 text-secondary">{String(index + 1).padStart(2, '0')}</span>
                 <span
+                  data-project-title
                   className={`min-w-0 text-[clamp(26px,4.4vw,64px)] font-medium leading-[1.02] tracking-tight transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
                     dimmed ? 'opacity-30' : 'opacity-100'
                   }`}

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
-import SectionTitle from './SectionTitle';
 import { Stage, STAGE_PADDING } from './Stage';
 import { WorkPanel, ScaledPreview } from './work/Preview';
 import { projects } from './work/projects';
@@ -288,11 +287,9 @@ export default function WorkSection() {
 
   return (
     <section id="work" className="w-full pb-8 lg:pb-12 px-6 lg:px-10 2xl:px-16 scroll-mt-20">
-      <div className="max-w-[1200px] mx-auto pt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <SectionTitle disableScrollTrigger>Work</SectionTitle>
-        {/* <LayoutSwitcher layout={layout} onChange={setLayout} /> is switched off for now; see WorkLayout.tsx */}
-      </div>
-      <motion.div className="max-w-[1200px] mx-auto mt-6" {...fadeInUp}>
+      {/* The Work heading and the layout switcher (see WorkLayout.tsx) are switched off for now. */}
+      {/* <TransitionSwitcher /> is switched off: Expand is the transition. See ProjectTransition.tsx */}
+      <motion.div className="max-w-[1200px] mx-auto pt-8" {...fadeInUp}>
         {layout === 'grid' && <WorkGrid />}
         {layout === 'bands' && <WorkBands />}
         {layout === 'index' && <WorkIndex />}

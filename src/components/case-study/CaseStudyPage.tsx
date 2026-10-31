@@ -10,6 +10,8 @@ import DecisionStories from '@/components/vignettes/shared/DecisionStories'
 import LinkedText from '@/components/vignettes/shared/LinkedText'
 import { Stage, STAGE_PADDING, STAGE_TINTS } from '@/components/Stage'
 import { fadeInUp } from '@/lib/animations'
+import { useReducedMotion } from '@/lib/useReducedMotion'
+import { useRevealed } from '@/components/work/ProjectTransition'
 import type { CaseStudyContent } from './content'
 
 interface CaseStudyPageProps {
@@ -19,7 +21,19 @@ interface CaseStudyPageProps {
 }
 
 // Shared layout for work case studies: breadcrumb, write-up on the left, interactive UI on the right.
+const EASE_OUT = [0.22, 1, 0.36, 1] as const
+
 export default function CaseStudyPage({ content, children }: CaseStudyPageProps) {
+  // The page's own content comes in once any transition cover starts to fade (straight away on a direct visit),
+  // one piece after another, so the cover gives way to the page instead of hiding a finished one.
+  const revealed = useRevealed()
+  const reducedMotion = useReducedMotion()
+  const rise = (delay: number, y = 28, scale = 1) => ({
+    initial: { opacity: 0, y, scale },
+    animate: revealed ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y, scale },
+    transition: reducedMotion ? { duration: 0 } : { duration: 0.9, delay: revealed ? delay : 0, ease: EASE_OUT },
+  })
+
   const breadcrumb = (
   <nav aria-label="Breadcrumb" className="mb-8 lg:mb-12">
     <ol className="flex items-center gap-2 type-small">
@@ -55,19 +69,28 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
           </header>
           <section className="pt-8 pb-8 lg:pb-10 px-6 lg:px-10 2xl:px-16">
             <div className="max-w-[1200px] mx-auto">
-              {breadcrumb}
-              <motion.div {...fadeInUp} className="max-w-[760px] mb-8">
-                <h1 className="type-h2 text-primary">{content.headline}</h1>
-                {content.meta && <p className="type-small text-secondary mt-3">{content.meta}</p>}
-              </motion.div>
-              <VignetteContainer id={content.slug} allowOverflow>
-                {content.unstaged ? (
-                  children
-                ) : (
-                  <Stage id={content.stageId} frameless>
-                    {children}
-                  </Stage>
+              <motion.div {...rise(0, 8)}>{breadcrumb}</motion.div>
+              <div className="max-w-[760px] mb-8">
+                <motion.h1 {...rise(0.12)} className="type-h2 text-primary">
+                  {content.headline}
+                </motion.h1>
+                {content.meta && (
+                  <motion.p {...rise(0.26, 16)} className="type-small text-secondary mt-3">
+                    {content.meta}
+                  </motion.p>
                 )}
+              </div>
+              <VignetteContainer id={content.slug} allowOverflow>
+                {/* The UI rises into place last, a little after the headline */}
+                <motion.div {...rise(0.38, 64, 0.975)} style={{ transformOrigin: 'center top' }}>
+                  {content.unstaged ? (
+                    children
+                  ) : (
+                    <Stage id={content.stageId} frameless>
+                      {children}
+                    </Stage>
+                  )}
+                </motion.div>
               </VignetteContainer>
             </div>
           </section>
