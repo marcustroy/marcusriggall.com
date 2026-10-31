@@ -27,7 +27,7 @@ export default function SideProjectsSection() {
         {sideProjects.map((project) => (
           <Link key={project.name} href={project.href}>
             <motion.article
-              className="group relative rounded-2xl border border-border/60 bg-white p-8 lg:p-10 h-full flex flex-col gap-4 hover:border-border transition-colors duration-200"
+              className="group relative rounded-2xl border border-border/60 bg-background-elevated p-8 lg:p-10 h-full flex flex-col gap-4 hover:border-border transition-colors duration-200"
               {...fadeInUp}
             >
               <span className="type-label text-tertiary">{project.label}</span>

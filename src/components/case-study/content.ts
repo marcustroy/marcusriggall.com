@@ -30,7 +30,7 @@ export const caseStudies: Record<string, CaseStudyContent> = {
     stageId: 'prototyping',
     uiAbove: true,
     // Zara Hussain's avatar circle in the sandbox UI: #8B5CF6 at 12% over white.
-    tint: '#F1EBFE',
+    tint: 'var(--tint-design-sandbox)',
     projectName: prototypingContent.projectName,
     headline: 'Internal repository to make AI prototyping faster and easier for designers and product managers',
     meta: 'Culture Amp, 2025',

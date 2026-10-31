@@ -18,7 +18,7 @@
   --neutral-50: #FAFAFA;
 
   /* Semantic colors */
-  --background: #FFFFFF;
+  --background: #F9F9F9; /* Kaizen gray-100 */
   --background-elevated: #FFFFFF;
   --background-subtle: #F4F4F5;
   --foreground: var(--neutral-900);
@@ -50,6 +50,29 @@
   --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.06);
   --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.06);
 
+  /* Surfaces and interaction fills that change with the theme */
+  --hover-fill: rgba(228, 228, 231, 0.8);
+  --hover-fill-tint: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --link: #0168B3;
+  --stage-light: rgba(255, 255, 255, 0.65);
+  --on-primary: #FFFFFF;
+
+  /* Project colours: the band behind each case study, and the accent for its title */
+  --tint-heatmap-comparisons: #FDEAEE;
+  --tint-culture-quadrant: #DDF2F4;
+  --tint-sensitive-comments: #FDEEDC;
+  --tint-prototyping: #E8E9EE;
+  --tint-design-sandbox: #F1EBFE;
+  --accent-heatmap-comparisons: #C93B55;
+  --accent-culture-quadrant: #2A9D96;
+  --accent-sensitive-comments: #D9741A;
+  --accent-prototyping: #8B5CF6;
+
+  --stepper-bg: #FFFFFF;
+
+  color-scheme: light;
+
   /* Refined border radii - generous softness for a modern feel */
   --radius-xs: 0.25rem;
   --radius-sm: 0.375rem;
@@ -59,6 +82,96 @@
   --radius-2xl: 1.25rem;
 }
 
+/* Dark theme: set on <html data-theme="dark"> by the toggle (and before first paint by an inline script).
+   Product UI shown in the case studies is a screenshot of real software, so it stays light. */
+:root[data-theme="dark"] {
+  --neutral-950: #F4F4F5;
+  --neutral-900: #F4F4F5;
+  --neutral-800: #D4D4D8;
+  --neutral-700: #A1A1AA;
+  --neutral-600: #A1A1AA;
+  --neutral-300: #3F3F46;
+  --neutral-200: #262B35;
+  --neutral-100: #1B1F27;
+
+  --background: #13161C;
+  --background-elevated: #1B1F27;
+  --background-subtle: #1B1F27;
+  --muted-foreground: #A1A1AA;
+  --muted-tertiary: #71717A;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --primary: #F4F4F5;
+  --secondary: #A3A9B5;
+  --tertiary: #8B91A0;
+
+  --hover-fill: rgba(255, 255, 255, 0.09);
+  --hover-fill-tint: rgba(255, 255, 255, 0.12);
+  --surface-raised: #2A2F3A;
+  --link: #6AB0F3;
+  --stage-light: rgba(255, 255, 255, 0.06);
+  --on-primary: #13161C;
+
+  --tint-heatmap-comparisons: #2A161B;
+  --tint-culture-quadrant: #12282B;
+  --tint-sensitive-comments: #2B1D10;
+  --tint-prototyping: #1C1D24;
+  --tint-design-sandbox: #231C35;
+  --accent-heatmap-comparisons: #F0647E;
+  --accent-culture-quadrant: #4CC3BB;
+  --accent-sensitive-comments: #F2A25C;
+  --accent-prototyping: #A98BFA;
+
+  --stepper-bg: #0E5753; /* the PCQ quadrant label teal */
+
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] .css-gradient-background {
+  background: var(--background);
+}
+
+:root[data-theme="dark"] :focus-visible {
+  outline-color: rgba(255, 255, 255, 0.5);
+}
+
+:root[data-theme="dark"] ::selection {
+  background-color: #3F3F46;
+}
+
+/* Product UI is a picture of real (light) software, so it keeps the light tokens in either theme */
+.theme-light {
+  --neutral-950: #111;
+  --neutral-900: #111;
+  --neutral-800: #333;
+  --neutral-700: #555;
+  --neutral-600: #666;
+  --neutral-300: #D4D4D8;
+  --neutral-200: #E4E4E7;
+  --neutral-100: #F4F4F5;
+  --background: #FFFFFF;
+  --background-elevated: #FFFFFF;
+  --background-subtle: #F4F4F5;
+  --muted-foreground: #666;
+  --muted-tertiary: #999;
+  --border: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.1);
+  --primary: #111;
+  --secondary: #666;
+  --tertiary: #737373;
+  --hover-fill: rgba(228, 228, 231, 0.8);
+  --surface-raised: #FFFFFF;
+  --link: #0168B3;
+  color: var(--primary);
+  color-scheme: light;
+}
+
+/* Colours ease across when the theme is switched (the class is on <html> for a moment only) */
+html.theme-switching :not([data-theme-toggle], [data-theme-toggle] *),
+html.theme-switching :not([data-theme-toggle], [data-theme-toggle] *)::before,
+html.theme-switching :not([data-theme-toggle], [data-theme-toggle] *)::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease !important;
+}
 
 @theme inline {
   /* Colors - semantic */
@@ -77,6 +190,9 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
+  --color-hover: var(--hover-fill);
+  --color-hover-tint: var(--hover-fill-tint);
+  --color-surface-raised: var(--surface-raised);
 
   /* Colors - neutral scale for dark mode */
   --color-neutral-950: var(--neutral-950);
@@ -354,7 +470,7 @@ a {
 /* Primary button */
 .btn-primary {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--on-primary);
   padding: 0.625rem 1.25rem;
   border-radius: 0.5rem;
   border: none;
@@ -516,7 +632,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: #FFFFFF;
+  background: var(--background);
   pointer-events: none;
 }
 
@@ -557,4 +673,11 @@ a {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Printed pages (the resume PDF) stay on plain white */
+@media print {
+  .css-gradient-background {
+    background: #FFFFFF;
+  }
 }

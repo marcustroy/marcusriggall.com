@@ -77,7 +77,7 @@ const references = [
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="grid gap-4 py-8 border-t border-black/8 md:grid-cols-[200px_1fr] md:gap-10">
+    <section className="grid gap-4 py-8 border-t border-border-strong md:grid-cols-[200px_1fr] md:gap-10">
       <h2 className="type-h3 text-primary">{title}</h2>
       <div className="flex flex-col gap-8">{children}</div>
     </section>
@@ -157,11 +157,11 @@ export default function ResumePage() {
           <div className="max-w-[860px]">
             <h1>
               <Image
-                src="/avatars/mr-monogram.png"
+                src="/avatars/headshot.jpg"
                 alt="Marcus Riggall"
                 width={64}
                 height={64}
-                className="h-16 w-16 rounded-full"
+                className="h-16 w-16 rounded-full object-cover object-top"
               />
             </h1>
             <p className="type-body text-primary mt-5">{EMAIL}</p>
@@ -170,7 +170,7 @@ export default function ResumePage() {
               <a
                 href="/resume.pdf"
                 download="Marcus Riggall - Resume.pdf"
-                className="print:hidden inline-flex items-center gap-1.5 type-small font-medium text-black rounded-lg px-3 py-1 -ml-3 hover:bg-neutral-200/80 transition-colors duration-200"
+                className="print:hidden inline-flex items-center gap-1.5 type-small font-medium text-primary rounded-lg px-3 py-1 -ml-3 hover:bg-hover transition-colors duration-200"
               >
                 Download as PDF
                 <span className="kaizen-scope flex">

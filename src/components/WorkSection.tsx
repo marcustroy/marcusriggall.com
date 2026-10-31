@@ -161,7 +161,7 @@ function MobileItem({
             </ScaledPreview>
           </Stage>
         ) : (
-          <div className="aspect-[4/3] rounded-lg bg-neutral-100" />
+          <div className="aspect-[4/3] rounded-lg bg-muted" />
         )}
       </motion.div>
     </div>
@@ -222,7 +222,7 @@ function DesktopGroup({
             {isActive && (
               <motion.div
                 layoutId="work-active-highlight"
-                className="absolute inset-0 rounded-lg bg-neutral-200/80"
+                className="absolute inset-0 rounded-lg bg-hover"
                 transition={panelTransition}
                 aria-hidden="true"
               />
@@ -286,7 +286,7 @@ export default function WorkSection() {
   const [layout] = useWorkLayout();
 
   return (
-    <section id="work" className="w-full pb-8 lg:pb-12 px-6 lg:px-10 2xl:px-16 scroll-mt-20">
+    <section id="work" className="w-full overflow-x-clip pb-8 lg:pb-12 px-6 lg:px-10 2xl:px-16 scroll-mt-20">
       {/* The Work heading and the layout switcher (see WorkLayout.tsx) are switched off for now. */}
       {/* <TransitionSwitcher /> is switched off: Expand is the transition. See ProjectTransition.tsx */}
       <motion.div className="max-w-[1200px] mx-auto pt-8" {...fadeInUp}>

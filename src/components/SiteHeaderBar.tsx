@@ -1,5 +1,6 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import ThemeToggle from './ThemeToggle';
+import MrMonogram from './work/MrMonogram';
 
 export function LinkedInIcon({ className = 'h-5 w-5' }: { className?: string }) {
   return (
@@ -20,7 +21,7 @@ export function GitHubIcon({ className = 'h-5 w-5' }: { className?: string }) {
 export const RESUME_URL = '/resume';
 
 // Buttons share one hover fill: light grey, or white when the bar sits on a tinted band.
-const hoverFill = (onTint: boolean) => (onTint ? 'hover:bg-white' : 'hover:bg-neutral-200/80');
+const hoverFill = (onTint: boolean) => (onTint ? 'hover:bg-hover-tint' : 'hover:bg-hover');
 
 export const iconButtonClass = (onTint = false) =>
   `flex items-center rounded-lg p-1.5 ${hoverFill(onTint)} transition-colors duration-200`;
@@ -31,7 +32,7 @@ export function ResumeButton({ onClick, onTint = false }: { onClick?: () => void
       href={RESUME_URL}
       className={`type-small font-medium rounded-lg px-3 py-[7px] ${hoverFill(onTint)} transition-colors duration-200`}
       // Inline: the global `a { color: inherit }` rule outranks Tailwind's layered text colours.
-      style={{ color: '#000' }}
+      style={{ color: 'var(--primary)' }}
       onClick={onClick}
     >
       Resume
@@ -40,7 +41,7 @@ export function ResumeButton({ onClick, onTint = false }: { onClick?: () => void
 }
 
 function MonogramLink({ href }: { href?: string }) {
-  const image = <Image src="/avatars/mr-monogram.png" alt="Marcus Riggall" width={32} height={32} className="h-8 w-8 rounded-full" />;
+  const image = <MrMonogram still color="var(--primary)" className="h-6 w-11" />;
   const className = 'block hover:opacity-70 transition-opacity';
   return href ? (
     <Link href={href} aria-label="Marcus Riggall, home" className={className}>
@@ -53,7 +54,7 @@ function MonogramLink({ href }: { href?: string }) {
   );
 }
 
-// Shared bar for every page header: name on the left, LinkedIn and GitHub on the right.
+// Shared bar for every page header: the MR monogram on the left, the links and theme toggle on the right.
 // On the homepage the MR monogram scrolls to top; elsewhere the name links home.
 export default function SiteHeaderBar({
   onHome = false,
@@ -70,16 +71,11 @@ export default function SiteHeaderBar({
   /** With onHome: send the monogram to this page, instead of scrolling to the top. */
   homeHref?: string;
 }) {
-  const nameClassName = 'font-medium text-primary hover:opacity-70 transition-opacity';
-
   return (
     <div className="max-w-[1200px] mx-auto h-14 flex items-center justify-between">
-      {onHome ? (
-        <MonogramLink href={homeHref} />
-      ) : (
-        <Link href="/" className={nameClassName}>Marcus Riggall</Link>
-      )}
-      <div className="flex items-center gap-1 -mr-1.5">
+      {/* The MR monogram on every page: it scrolls to the top on the home page and goes home from elsewhere */}
+      <MonogramLink href={onHome ? homeHref : '/'} />
+      <div className="flex items-center gap-1">
         <ResumeButton onTint={onTint} />
         <a
           href="https://www.linkedin.com/in/marcusriggall"
@@ -101,6 +97,7 @@ export default function SiteHeaderBar({
         >
           <GitHubIcon />
         </a>
+        <ThemeToggle onTint={onTint} />
       </div>
     </div>
   );

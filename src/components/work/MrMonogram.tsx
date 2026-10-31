@@ -30,6 +30,8 @@ const WRITE_EASE = [0.3, 0.05, 0.45, 1] as const;
 interface MrMonogramProps {
   color: string;
   className?: string;
+  /** Show the finished initials straight away, with no writing animation. */
+  still?: boolean;
   /** Seconds before the first stroke starts. */
   delay?: number;
   /** Called once the last stroke has been drawn. */
@@ -37,8 +39,9 @@ interface MrMonogramProps {
 }
 
 // Writes the MR initials onto the screen, stroke by stroke.
-export default function MrMonogram({ color, className, delay = 0, onWritten }: MrMonogramProps) {
+export default function MrMonogram({ color, className, still = false, delay = 0, onWritten }: MrMonogramProps) {
   const maskId = useId();
+  const clipId = useId();
   const paths = useRef<(SVGPathElement | null)[]>([]);
   const written = useRef(onWritten);
   useEffect(() => {
@@ -46,6 +49,7 @@ export default function MrMonogram({ color, className, delay = 0, onWritten }: M
   });
 
   useEffect(() => {
+    if (still) return;
     const lengths = paths.current.map((path) => path?.getTotalLength() ?? 0);
     // A stroke's share of the pen's travel, so that every stroke is drawn at the same speed.
     const total = lengths.reduce((sum, length) => sum + length, 0) + PEN_LIFT * (STROKES.length - 1);
@@ -71,6 +75,11 @@ export default function MrMonogram({ color, className, delay = 0, onWritten }: M
   return (
     <svg viewBox="0 0 91 52" fill="none" className={className} role="img" aria-label="MR">
       <defs>
+        {/* The m's last stroke runs right beside the start of the r, so its mask would also uncover a stub of
+            the r (its bowl and the top of its leg) before the pen gets there. This keeps the stroke to the stem. */}
+        <clipPath id={clipId}>
+          <polygon points="-10,-10 60,-10 60,12 50.9,12 50.1,14.5 48.9,20 48.3,24 48.3,32 60,32 60,60 -10,60" />
+        </clipPath>
         <mask id={maskId} maskUnits="userSpaceOnUse" x="-6" y="-6" width="103" height="64">
           {STROKES.map((stroke, index) => (
             <path
@@ -79,6 +88,7 @@ export default function MrMonogram({ color, className, delay = 0, onWritten }: M
                 paths.current[index] = el;
               }}
               d={stroke.d}
+              clipPath={index === 0 ? `url(#${clipId})` : undefined}
               stroke="white"
               strokeWidth={5}
               strokeLinecap="round"
@@ -86,7 +96,7 @@ export default function MrMonogram({ color, className, delay = 0, onWritten }: M
               fill="none"
               pathLength={1}
               strokeDasharray="1 2"
-              strokeDashoffset={1}
+              strokeDashoffset={still ? 0 : 1}
             />
           ))}
         </mask>

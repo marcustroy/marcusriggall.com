@@ -4,7 +4,7 @@
 # then commit the updated PDF. Re-run whenever src/app/resume/page.tsx changes.
 set -euo pipefail
 
-URL="${1:-http://localhost:3000/resume}"
+URL="${1:-http://localhost:3000/resume?theme=light}"
 CHROME="${CHROME_PATH:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}"
 OUT="$(cd "$(dirname "$0")/.." && pwd)/public/resume.pdf"
 

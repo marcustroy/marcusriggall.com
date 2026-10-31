@@ -9,6 +9,8 @@ export interface Project {
   tint: string;
   /** A stronger colour from the same family, for type and shapes. */
   accent: string;
+  /** Overrides the accent for the title text while the row is open. */
+  titleColor?: string;
   period: string;
 }
 
@@ -40,15 +42,17 @@ const base: Omit<Project, 'tint' | 'accent' | 'period'>[] = [
   },
 ];
 
-const extras: Record<string, { accent: string; period: string }> = {
-  'culture-quadrant': { accent: '#2A9D96', period: 'Culture Amp, 2026' },
-  'heatmap-comparisons': { accent: '#C93B55', period: 'Culture Amp, 2025' },
-  prototyping: { accent: '#8B5CF6', period: 'Culture Amp, 2025-2026' },
-  'sensitive-comments': { accent: '#3F9A86', period: 'Culture Amp, 2026' },
+const extras: Record<string, { accent: string; titleColor?: string; period: string }> = {
+  'culture-quadrant': { accent: 'var(--accent-culture-quadrant)', period: 'Culture Amp, 2026' },
+  // Kaizen red-400, made more vibrant
+  'heatmap-comparisons': { accent: 'var(--accent-heatmap-comparisons)', titleColor: '#EB5468', period: 'Culture Amp, 2025' },
+  prototyping: { accent: 'var(--accent-prototyping)', period: 'Culture Amp, 2025-2026' },
+  // Kaizen orange-400, made more vibrant
+  'sensitive-comments': { accent: 'var(--accent-sensitive-comments)', titleColor: '#FF8040', period: 'Culture Amp, 2026' },
 };
 
 export const projects: Project[] = base.map((item) => ({
   ...item,
-  tint: item.id === 'prototyping' ? '#F1EBFE' : STAGE_TINTS[item.id],
+  tint: item.id === 'prototyping' ? 'var(--tint-design-sandbox)' : STAGE_TINTS[item.id],
   ...extras[item.id],
 }));
