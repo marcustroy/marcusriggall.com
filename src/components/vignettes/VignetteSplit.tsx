@@ -17,6 +17,8 @@ interface VignetteSplitProps {
   compact?: boolean;
   /** Override the side-by-side column widths, e.g. to give a wide panel more room. */
   columnsClass?: string;
+  /** In a stacked layout, show the panel above the text. */
+  panelFirst?: boolean;
 }
 
 export default function VignetteSplit({
@@ -27,6 +29,7 @@ export default function VignetteSplit({
   animateEntrance = true,
   compact = false,
   columnsClass = 'xl:grid-cols-[500px_1fr] 2xl:grid-cols-[544px_1fr]',
+  panelFirst = false,
 }: VignetteSplitProps) {
   const reducedMotion = useReducedMotion();
   const t = reducedMotion ? timingReduced : timing;
@@ -82,7 +85,7 @@ export default function VignetteSplit({
             </div>
           )}
         </div>
-        <div className="w-full min-w-0">
+        <div className={`w-full min-w-0 ${panelFirst ? 'order-first' : ''}`}>
           <VignetteEntranceProvider delay={0}>
             {children}
           </VignetteEntranceProvider>
@@ -111,7 +114,7 @@ export default function VignetteSplit({
 
       {/* Panel column - animates after text */}
       <motion.div
-        className="w-full min-w-0 overflow-visible"
+        className={`w-full min-w-0 overflow-visible ${panelFirst ? 'order-first' : ''}`}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-80px' }}
