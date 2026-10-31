@@ -39,6 +39,20 @@ export function ResumeButton({ onClick, onTint = false }: { onClick?: () => void
   );
 }
 
+function MonogramLink({ href }: { href?: string }) {
+  const image = <Image src="/avatars/mr-monogram.png" alt="Marcus Riggall" width={32} height={32} className="h-8 w-8 rounded-full" />;
+  const className = 'block hover:opacity-70 transition-opacity';
+  return href ? (
+    <Link href={href} aria-label="Marcus Riggall, home" className={className}>
+      {image}
+    </Link>
+  ) : (
+    <a href="#" aria-label="Marcus Riggall, back to top" className={className}>
+      {image}
+    </a>
+  );
+}
+
 // Shared bar for every page header: name on the left, LinkedIn and GitHub on the right.
 // On the homepage the MR monogram scrolls to top; elsewhere the name links home.
 export default function SiteHeaderBar({
@@ -46,27 +60,22 @@ export default function SiteHeaderBar({
   onLinkedInClick,
   onGitHubClick,
   onTint = false,
+  homeHref,
 }: {
   onHome?: boolean;
   onLinkedInClick?: () => void;
   onGitHubClick?: () => void;
   /** The bar sits on a tinted band, so buttons use a white hover for contrast. */
   onTint?: boolean;
+  /** With onHome: send the monogram to this page, instead of scrolling to the top. */
+  homeHref?: string;
 }) {
   const nameClassName = 'font-medium text-primary hover:opacity-70 transition-opacity';
 
   return (
     <div className="max-w-[1200px] mx-auto h-14 flex items-center justify-between">
       {onHome ? (
-        <a href="#" aria-label="Marcus Riggall, back to top" className="block hover:opacity-70 transition-opacity">
-          <Image
-            src="/avatars/mr-monogram.png"
-            alt="Marcus Riggall"
-            width={32}
-            height={32}
-            className="h-8 w-8 rounded-full"
-          />
-        </a>
+        <MonogramLink href={homeHref} />
       ) : (
         <Link href="/" className={nameClassName}>Marcus Riggall</Link>
       )}

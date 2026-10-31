@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import Header from '@/components/Header'
 import SiteHeaderBar from '@/components/SiteHeaderBar'
 import VignetteContainer from '@/components/vignettes/VignetteContainer'
 import VignetteSplit from '@/components/vignettes/VignetteSplit'
@@ -41,8 +42,15 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
   if (content.uiAbove) {
     return (
       <div className="min-h-screen overflow-x-hidden bg-white">
-        <div style={{ backgroundColor: content.tint ?? STAGE_TINTS[content.stageId] }}>
-          <header className="px-6 lg:px-10 2xl:px-16">
+        <Header
+          targetId="case-study-header"
+          rootMargin="0px"
+          homeHref="/"
+          bandId="case-study-band"
+          bandColor={content.tint ?? STAGE_TINTS[content.stageId]}
+        />
+        <div id="case-study-band" style={{ backgroundColor: content.tint ?? STAGE_TINTS[content.stageId] }}>
+          <header id="case-study-header" className="px-6 lg:px-10 2xl:px-16">
             <SiteHeaderBar onTint />
           </header>
           <section className="pt-8 pb-8 lg:pb-10 px-6 lg:px-10 2xl:px-16">
@@ -109,7 +117,8 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
 
   return (
     <div className="min-h-screen overflow-x-hidden">
-      <header className="border-b border-border/50 px-6 lg:px-10 2xl:px-16">
+      <Header targetId="case-study-header" rootMargin="0px" homeHref="/" />
+      <header id="case-study-header" className="border-b border-border/50 px-6 lg:px-10 2xl:px-16">
         <SiteHeaderBar />
       </header>
       <section className="pt-8 pb-12 lg:pb-20 px-6 lg:px-10 2xl:px-16">
