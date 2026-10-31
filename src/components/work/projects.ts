@@ -9,6 +9,8 @@ export interface Project {
   tint: string;
   /** A stronger colour from the same family, for type and shapes. */
   accent: string;
+  /** Overrides the accent for the title text while the row is open. */
+  titleColor?: string;
   period: string;
 }
 
@@ -40,11 +42,13 @@ const base: Omit<Project, 'tint' | 'accent' | 'period'>[] = [
   },
 ];
 
-const extras: Record<string, { accent: string; period: string }> = {
+const extras: Record<string, { accent: string; titleColor?: string; period: string }> = {
   'culture-quadrant': { accent: 'var(--accent-culture-quadrant)', period: 'Culture Amp, 2026' },
-  'heatmap-comparisons': { accent: 'var(--accent-heatmap-comparisons)', period: 'Culture Amp, 2025' },
+  // Kaizen red-400, made more vibrant
+  'heatmap-comparisons': { accent: 'var(--accent-heatmap-comparisons)', titleColor: '#EB5468', period: 'Culture Amp, 2025' },
   prototyping: { accent: 'var(--accent-prototyping)', period: 'Culture Amp, 2025-2026' },
-  'sensitive-comments': { accent: 'var(--accent-sensitive-comments)', period: 'Culture Amp, 2026' },
+  // Kaizen orange-400, made more vibrant
+  'sensitive-comments': { accent: 'var(--accent-sensitive-comments)', titleColor: '#FF8040', period: 'Culture Amp, 2026' },
 };
 
 export const projects: Project[] = base.map((item) => ({

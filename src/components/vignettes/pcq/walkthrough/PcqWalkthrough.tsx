@@ -58,7 +58,7 @@ export default function PcqWalkthrough() {
 
   return (
     // The UI with its slider centred beneath, and the step's description to the right (below on small screens).
-    <div className="kaizen-scope relative grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,820px)_240px]">
+    <div className="kaizen-scope relative grid gap-x-10 gap-y-6 min-[1280px]:gap-x-[104px] lg:grid-cols-[minmax(0,820px)_240px]">
       <div className="theme-light min-w-0">
         <PcqPanel stage={(step + 2) as PcqStage} />
       </div>

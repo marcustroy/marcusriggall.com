@@ -54,7 +54,7 @@ function MonogramLink({ href }: { href?: string }) {
   );
 }
 
-// Shared bar for every page header: name on the left, LinkedIn and GitHub on the right.
+// Shared bar for every page header: the MR monogram on the left, the links and theme toggle on the right.
 // On the homepage the MR monogram scrolls to top; elsewhere the name links home.
 export default function SiteHeaderBar({
   onHome = false,
@@ -71,15 +71,10 @@ export default function SiteHeaderBar({
   /** With onHome: send the monogram to this page, instead of scrolling to the top. */
   homeHref?: string;
 }) {
-  const nameClassName = 'font-medium text-primary hover:opacity-70 transition-opacity';
-
   return (
     <div className="max-w-[1200px] mx-auto h-14 flex items-center justify-between">
-      {onHome ? (
-        <MonogramLink href={homeHref} />
-      ) : (
-        <Link href="/" className={nameClassName}>Marcus Riggall</Link>
-      )}
+      {/* The MR monogram on every page: it scrolls to the top on the home page and goes home from elsewhere */}
+      <MonogramLink href={onHome ? homeHref : '/'} />
       <div className="flex items-center gap-1">
         <ResumeButton onTint={onTint} />
         <a

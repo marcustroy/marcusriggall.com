@@ -18,11 +18,12 @@ export default function WorkBlend() {
         const isOpen = open === index;
         const dimmed = !isOpen;
         return (
-          <div key={project.id} data-project-row className="relative -mx-3 overflow-hidden md:-mx-8" onMouseEnter={() => setOpen(index)}>
-            {/* The colour sweeps in from the left when the row opens, and back out when another one does */}
+          <div key={project.id} data-project-row className="relative -mx-3 md:-mx-8" onMouseEnter={() => setOpen(index)}>
+            {/* The colour sweeps in from the left when the row opens, and back out when another one does.
+                It runs the full width of the screen, while the row's content stays in the page column. */}
             <span
               aria-hidden="true"
-              className={`absolute inset-0 origin-left transition-transform duration-700 ease-[cubic-bezier(0.7,0,0.2,1)] ${
+              className={`absolute inset-y-0 left-1/2 w-screen -translate-x-1/2 origin-left transition-transform duration-700 ease-[cubic-bezier(0.7,0,0.2,1)] ${
                 isOpen ? 'scale-x-100' : 'scale-x-0'
               }`}
               style={{ backgroundColor: project.tint }}
@@ -40,7 +41,7 @@ export default function WorkBlend() {
                   className={`min-w-0 text-[clamp(26px,4.4vw,64px)] font-medium leading-[1.02] tracking-tight transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
                     dimmed ? 'opacity-30' : 'opacity-100'
                   }`}
-                  style={{ color: isOpen ? project.accent : undefined }}
+                  style={{ color: isOpen ? (project.titleColor ?? project.accent) : undefined }}
                 >
                   {project.title}
                 </span>

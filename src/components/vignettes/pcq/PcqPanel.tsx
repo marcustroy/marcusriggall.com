@@ -872,7 +872,9 @@ export default function PcqPanel({ className = '', stage, showcase = false }: Pc
           key="side"
           aria-label={coachOpen ? 'Coach' : 'Score detail'}
           className={`absolute -bottom-2 -top-2 z-30 overflow-hidden rounded-[14px] border bg-[var(--color-white)] ${
-            staged ? '-right-6' : 'right-0'
+            // Flush with the UI's right edge on narrower screens, so the page margin matches the left; from 1280px there is
+            // spare room beside the UI (the description sits at the far right), so the panel moves out over it and covers less of the chart
+            staged ? 'right-0 min-[1280px]:-right-[72px]' : 'right-0'
           } ${
             staged
               ? 'border-[var(--color-gray-400)]'
