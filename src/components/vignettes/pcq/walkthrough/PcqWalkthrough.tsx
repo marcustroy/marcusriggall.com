@@ -5,13 +5,18 @@ import { motion } from 'framer-motion';
 import PcqPanel, { type PcqStage } from '../PcqPanel';
 
 // The home page's interactive Performance Culture Quadrant, revealed one step at a time.
-// Steps start at PcqPanel stage 2 (overall and comparison points), so the stage is the step index plus 2.
+// Steps start at PcqPanel stage 2 (overall and comparison points), so the stage is the step index plus 2:
+// overall and comparison, demographics, score detail, Coach.
 const steps: { caption: string }[] = [
   {
     caption:
       'The PCQ maps two key factors into culture states backed by Culture Amp People Science. Organisations position themselves on the chart based on their overall results and compare to benchmarks.',
   },
   { caption: 'Adding demographics helps identify key groups in need of support' },
+  {
+    caption:
+      'Select a group to view the Insights Explorer, allowing customers to dig into the data behind favorable score',
+  },
   { caption: 'Coach helps leaders explore survey themes, understand their results and decide on the next best action' },
 ];
 
@@ -52,14 +57,20 @@ export default function PcqWalkthrough() {
   const [step, setStep] = useState(0);
 
   return (
-    <div className="kaizen-scope relative flex flex-col gap-5">
-      <div className="mb-6 overflow-hidden rounded-[var(--border-solid-border-radius,7px)] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_8px_16px_-8px_rgba(0,0,0,0.08),0_32px_64px_-24px_rgba(0,0,0,0.22)]">
+    // The UI with its slider centred beneath, and the step's description to the right (below on small screens).
+    <div className="kaizen-scope relative grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,820px)_240px]">
+      <div className="min-w-0">
         <PcqPanel stage={(step + 2) as PcqStage} />
       </div>
-      <p aria-live="polite" className="mx-auto max-w-[460px] text-center text-[15px] leading-snug text-[#1d1d1f]">
+      <p
+        aria-live="polite"
+        className="mx-auto max-w-[460px] text-center text-[15px] leading-snug text-[#1d1d1f] lg:col-start-2 lg:row-start-1 lg:mx-0 lg:self-center lg:text-left"
+      >
         {steps[step].caption}
       </p>
-      <Stepper step={step} onStep={setStep} />
+      <div className="min-w-0 lg:col-start-1 lg:row-start-2">
+        <Stepper step={step} onStep={setStep} />
+      </div>
     </div>
   );
 }

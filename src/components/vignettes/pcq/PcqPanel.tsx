@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, type Transition } from 'framer-motion';
 import { Button, Heading, Icon } from '@kaizen/components';
 import { useReducedMotion } from '@/lib/useReducedMotion';
-import CoachPanel from './CoachPanel';
+import CoachPanel, { type CoachAutoEvent } from './CoachPanel';
+import ScoreDetailPanel, { type DetailView } from './ScoreDetailPanel';
 import '@/styles/kaizen.css';
 import '../heatmap-comparisons/heatmap.css';
 import './pcq.css';
 import {
   MIN_RESPONSES,
   THRESHOLD,
+  coachWalkthroughAnswer,
+  coachWalkthroughQuestion,
   comparisonPoint,
   overallByQuadrant,
   overallScores,
@@ -30,9 +33,9 @@ const TEAL_BORDER = '#2A9D96';
 const TEAL_TEXT = '#0E5753';
 const CHIP_BG = '#DDF2F4';
 
-// One row of legend items by default; expanding shows every item in even columns.
-const LEGEND_LIMIT = 3;
-const LEGEND_COLUMNS = 3;
+// Two rows of legend items by default; expanding shows every item in the same columns.
+const LEGEND_COLUMNS = 4;
+const LEGEND_LIMIT = LEGEND_COLUMNS * 2;
 const DOT_SIZE = 12;
 const GRID_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 // Grid lines run a little past the plot area on every side, as in the product.
@@ -54,6 +57,8 @@ interface DotProps {
   left: number;
   top: number;
   visible: boolean;
+  selected: boolean;
+  hovered: boolean;
   move: Transition;
   fade: Transition;
   onSelect: () => void;
@@ -62,7 +67,43 @@ interface DotProps {
 
 // A data point. When zooming, points that leave the chart fade out where they were, and points
 // that enter fade in where they land, so nothing ever travels in from (or out to) the outside.
-function Dot({ point, left, top, visible, move, fade, onSelect, onHover }: DotProps) {
+const COACH_WIDTH = 300;
+const DETAIL_WIDTH = 360;
+// How far the side panel overlaps the chart card.
+const PANEL_OVERLAP = 24;
+
+interface CursorState {
+  x: number;
+  y: number;
+  visible: boolean;
+  pressed: boolean;
+  /** Jump to x, y instead of gliding there. */
+  snap?: boolean;
+}
+
+// A pointer that plays the walkthrough's scripted clicks.
+function ScriptedCursor({ cursor, reducedMotion }: { cursor: CursorState; reducedMotion: boolean }) {
+  return (
+    <motion.div
+      aria-hidden="true"
+      className="pointer-events-none absolute left-0 top-0 z-50"
+      initial={false}
+      animate={{ x: cursor.x, y: cursor.y, opacity: cursor.visible ? 1 : 0, scale: cursor.pressed ? 0.88 : 1 }}
+      transition={{
+        x: reducedMotion || cursor.snap ? { duration: 0 } : { duration: 0.9, ease: [0.45, 0, 0.25, 1] },
+        y: reducedMotion || cursor.snap ? { duration: 0 } : { duration: 0.9, ease: [0.45, 0, 0.25, 1] },
+        opacity: { duration: 0.25 },
+        scale: { duration: 0.12 },
+      }}
+    >
+      <svg width="22" height="26" viewBox="0 0 22 26" fill="none" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))' }}>
+        <path d="M3 2L3 20L8 15.5L11.5 23L14.5 21.7L11.2 14.4L17.5 14.2L3 2Z" fill="black" stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+    </motion.div>
+  );
+}
+
+function Dot({ point, left, top, visible, selected, hovered, move, fade, onSelect, onHover }: DotProps) {
   const [state, setState] = useState({ left, top, visible, snap: false });
 
   // Adjust state while rendering (React's pattern for deriving state from props).
@@ -85,8 +126,12 @@ function Dot({ point, left, top, visible, move, fade, onSelect, onHover }: DotPr
       onMouseLeave={() => onHover(false)}
       onFocus={() => onHover(true)}
       onBlur={() => onHover(false)}
-      className="absolute rounded-full"
+      // A soft halo in a light tint of the dot's own colour on hover or focus, kept while it is selected.
+      className={`absolute rounded-full transition-shadow duration-150 hover:shadow-[0_0_0_7px_var(--dot-halo)] focus-visible:shadow-[0_0_0_7px_var(--dot-halo)] focus-visible:outline-none ${
+        selected || hovered ? 'shadow-[0_0_0_7px_var(--dot-halo)]' : ''
+      }`}
       style={{
+        '--dot-halo': `color-mix(in srgb, ${point.color} 22%, transparent)`,
         width: DOT_SIZE,
         height: DOT_SIZE,
         marginLeft: -DOT_SIZE / 2,
@@ -94,7 +139,7 @@ function Dot({ point, left, top, visible, move, fade, onSelect, onHover }: DotPr
         background: point.color,
         zIndex: point.kind === 'group' ? 2 : 3,
         pointerEvents: shown ? 'auto' : 'none',
-      }}
+      } as React.CSSProperties}
       initial={false}
       animate={{
         left: `${state.left}%`,
@@ -137,12 +182,7 @@ function AnimatedHeight({ children, reducedMotion }: { children: React.ReactNode
   );
 }
 
-function quadrantOf(point: { x: number; y: number }): QuadrantId {
-  const right = point.x >= THRESHOLD;
-  const top = point.y >= THRESHOLD;
-  if (top) return right ? 'peak-performance' : 'engaged-skepticism';
-  return right ? 'strained' : 'disconnected';
-}
+const comparisonPointName = 'PCD Survey (H1 2026)';
 
 function QuadrantLogo() {
   return (
@@ -155,8 +195,9 @@ function QuadrantLogo() {
   );
 }
 
-// Case-study walkthrough steps: 1 chart only, 2 + overall and comparison, 3 + demographics, 4 + Coach.
-export type PcqStage = 1 | 2 | 3 | 4;
+// Case-study walkthrough steps: 1 chart only, 2 + overall and comparison, 3 + demographics,
+// 4 + the score detail panel, 5 + Coach.
+export type PcqStage = 1 | 2 | 3 | 4 | 5;
 
 interface PcqPanelProps {
   className?: string;
@@ -171,28 +212,181 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
   const [quadrantId, setQuadrantId] = useState<QuadrantId>('peak-performance');
   const [zoomed, setZoomed] = useState<QuadrantId | null>(null);
   const [explorerOpen, setExplorerOpen] = useState(false);
-  const [coachOpen, setCoachOpen] = useState(staged && stage >= 4);
-  const [legendExpanded, setLegendExpanded] = useState(staged && stage >= 3);
+  const [coachOpen, setCoachOpen] = useState(staged && stage >= 5 && reducedMotion);
+  // The data point whose detail panel is open (Product, in the walkthrough).
+  const [detailId, setDetailId] = useState<string | null>(staged && stage === 4 && reducedMotion ? 'product' : null);
+  const [detailView, setDetailView] = useState<DetailView>('detail');
+  const [detailHoverRow, setDetailHoverRow] = useState<string | null>(null);
+  const [legendExpanded, setLegendExpanded] = useState(false);
   const [syncedStage, setSyncedStage] = useState(stage);
+  // Scripted walkthrough: a pointer that selects a data point, then opens Coach and types a question.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [cursor, setCursor] = useState<CursorState>({ x: 0, y: 0, visible: false, pressed: false, snap: true });
+  const [coachAuto, setCoachAuto] = useState(false);
+  const autoTimers = useRef<number[]>([]);
 
   // Moving between steps resets the panel to what that step shows (adjusting state while rendering).
   if (stage !== syncedStage) {
     setSyncedStage(stage);
     if (stage !== undefined) {
       setPreset(stage >= 3 ? 'typical' : 'real');
-      setCoachOpen(stage >= 4);
-      setLegendExpanded(stage >= 3);
+      // Steps 4 and 5 play a script; with reduced motion they start from the finished state.
+      setCoachOpen(stage >= 5 && reducedMotion);
+      setDetailId(stage === 4 && reducedMotion ? 'product' : null);
+      setDetailView(stage === 4 && reducedMotion ? 'comments' : 'detail');
+      setDetailHoverRow(null);
+      setCoachAuto(false);
+      setCursor((c) => ({ ...c, visible: false, pressed: false }));
+      setLegendExpanded(false);
       setZoomed(null);
       setExplorerOpen(false);
     }
   }
   const showPoints = !staged || stage >= 2;
-  const showDemographicFilter = !staged || stage >= 3;
+  // The case study shows the demographic groups on the chart without the filter button.
+  const showDemographicFilter = !staged;
   // In the case study the banner only appears with Coach, and the state explorer never does.
-  const showBanner = !staged || stage >= 4;
+  const showBanner = !staged || stage >= 5;
   const showExplorer = !staged;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const titleRowRef = useRef<HTMLDivElement>(null);
+
+  const at = (ms: number, fn: () => void) => {
+    autoTimers.current.push(window.setTimeout(fn, ms));
+  };
+  const clearAuto = () => {
+    autoTimers.current.forEach(clearTimeout);
+    autoTimers.current = [];
+  };
+  const cancelAuto = () => {
+    if (!autoTimers.current.length && !coachAuto && !cursor.visible) return;
+    clearAuto();
+    setCoachAuto(false);
+    setHoveredId(null);
+    setDetailHoverRow(null);
+    setCursor((c) => ({ ...c, visible: false, pressed: false }));
+  };
+  // Glide the pointer to the middle of an element (its tip lands on the point).
+  const moveTo = (el: Element | null | undefined) => {
+    const root = rootRef.current;
+    if (!el || !root) return;
+    const box = el.getBoundingClientRect();
+    const base = root.getBoundingClientRect();
+    setCursor((c) => ({
+      ...c,
+      x: box.left - base.left + box.width / 2 - 3,
+      y: box.top - base.top + box.height / 2 - 2,
+      visible: true,
+      snap: false,
+    }));
+  };
+  const press = () => {
+    setCursor((c) => ({ ...c, pressed: true }));
+    at(150, () => setCursor((c) => ({ ...c, pressed: false })));
+  };
+  const placeCursor = (fx: number, fy: number) => {
+    const root = rootRef.current;
+    if (!root) return;
+    const base = root.getBoundingClientRect();
+    setCursor({ x: base.width * fx, y: base.height * fy, visible: false, pressed: false, snap: true });
+    at(80, () => setCursor((c) => ({ ...c, visible: true, snap: false })));
+  };
+
+  // Step 4: select a data point, then open its AI comment summaries.
+  // Step 5: open Coach (the typing and sending is driven by the Coach panel's events).
+  useEffect(() => {
+    if (reducedMotion || (stage !== 4 && stage !== 5)) return;
+    const root = rootRef.current;
+    if (!root) return;
+    if (stage === 4) {
+      const scroller = () => root.querySelector<HTMLElement>('aside .overflow-y-auto');
+      // Eased scroll driven by a timer, so it keeps moving even when the browser throttles frames.
+      const scrollPanel = (top: number | 'end', animate = true) => {
+        const el = scroller();
+        if (!el) return;
+        const from = el.scrollTop;
+        const to = top === 'end' ? el.scrollHeight - el.clientHeight : top;
+        if (!animate) {
+          el.scrollTop = to;
+          return;
+        }
+        const start = performance.now();
+        const interval = window.setInterval(() => {
+          const t = Math.min(1, (performance.now() - start) / 900);
+          el.scrollTop = from + (to - from) * (t * t * (3 - 2 * t));
+          if (t >= 1) clearInterval(interval);
+        }, 16);
+        autoTimers.current.push(interval);
+      };
+      placeCursor(0.6, 0.9);
+      at(600, () => moveTo(root.querySelector('button[aria-label="Product"]')));
+      at(1500, () => setHoveredId('product'));
+      at(2000, press);
+      at(2150, () => {
+        setHoveredId(null);
+        setDetailId('product');
+        setDetailView('detail');
+      });
+      // Scroll the panel down to the menu items, then open AI comment summaries.
+      at(3000, () => moveTo(root.querySelector('aside')));
+      at(3900, () => scrollPanel('end'));
+      at(5300, () => moveTo(root.querySelector('[data-row="comments"]')));
+      at(6200, () => setDetailHoverRow('comments'));
+      at(6700, press);
+      at(6850, () => {
+        setDetailHoverRow(null);
+        setDetailView('comments');
+      });
+      at(6900, () => scrollPanel(0, false));
+      // Scroll down to the negative summary, back up to the positive one, and copy it.
+      at(7800, () => scrollPanel('end'));
+      // Back up to the positive summary, with its copy icon (and the tooltip above it) in view.
+      at(9400, () => {
+        const el = scroller();
+        const positive = el?.querySelector('section');
+        if (!el || !positive) return;
+        const top = positive.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+        const bottom = top + positive.getBoundingClientRect().height;
+        scrollPanel(Math.max(0, bottom - el.clientHeight + 48));
+      });
+      at(10800, () => moveTo(root.querySelector('[aria-label="Copy summary"]')));
+      at(11800, press);
+      at(11850, () => root.querySelector<HTMLElement>('[aria-label="Copy summary"]')?.click());
+      at(14000, () => setCursor((c) => ({ ...c, visible: false })));
+    } else {
+      placeCursor(0.55, 0.85);
+      at(600, () => {
+        const button = [...root.querySelectorAll('button')].find((b) => b.textContent?.includes('Explore with Coach'));
+        moveTo(button);
+      });
+      at(1700, press);
+      at(1850, () => {
+        setDetailId(null);
+        setCoachOpen(true);
+        setCoachAuto(true);
+      });
+      at(2500, () => moveTo(root.querySelector('aside')));
+    }
+    return clearAuto;
+    // The script restarts only when the step changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, reducedMotion]);
+
+  const onCoachAuto = (event: CoachAutoEvent) => {
+    const root = rootRef.current;
+    if (!root) return;
+    if (event === 'intro-done') {
+      moveTo(root.querySelector('#coach-reply'));
+    } else if (event === 'typed') {
+      moveTo(root.querySelector('aside button[type="submit"]'));
+      at(1450, press);
+    } else {
+      at(700, () => {
+        setCursor((c) => ({ ...c, visible: false }));
+        setCoachAuto(false);
+      });
+    }
+  };
 
   // Without a close button, the explorer closes on Escape or a click outside it.
   useEffect(() => {
@@ -252,9 +446,14 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
     p.x >= domain.x[0] && p.x <= domain.x[1] && p.y >= domain.y[0] && p.y <= domain.y[1];
 
   const legendPoints = showPoints ? points.filter(inDomain) : [];
-  const legendLimited = !legendExpanded && legendPoints.length > LEGEND_LIMIT;
-  const legendShown = legendLimited ? legendPoints.slice(0, LEGEND_LIMIT) : legendPoints;
-  const hovered = points.find((p) => p.id === hoveredId && inDomain(p));
+  // The case study shows a single row of the legend.
+  const legendLimit = staged ? LEGEND_COLUMNS : LEGEND_LIMIT;
+  const legendLimited = !legendExpanded && legendPoints.length > legendLimit;
+  const legendShown = legendLimited ? legendPoints.slice(0, legendLimit) : legendPoints;
+  const detailPoint = points.find((p) => p.id === detailId && inDomain(p));
+  // The tooltip follows the pointer, and goes once a point is selected.
+  const hovered = points.find((p) => p.id === hoveredId && p.id !== detailPoint?.id && inDomain(p));
+  const sideOpen = coachOpen || !!detailPoint;
 
   const choosePreset = (id: PresetId) => {
     setPreset(id);
@@ -262,15 +461,24 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
     setZoomed(null);
   };
 
+  const sideWidth = coachOpen ? COACH_WIDTH : DETAIL_WIDTH;
+  // On the home page the chart makes room for the panel. In the case study the panel simply overlays it.
+  const shrinks = sideOpen && !staged;
+  const cardWidth = shrinks ? `calc(100% - ${sideWidth - PANEL_OVERLAP}px)` : '100%';
+  const springTransition = reducedMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 220, damping: 30 };
+
   return (
-    <div className={`kaizen-scope flex w-full items-stretch ${className}`}>
+    <div ref={rootRef} onPointerDownCapture={cancelAuto} className={`kaizen-scope relative w-full ${className}`}>
     <div
-      className={`relative min-w-0 flex-1 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)] ${
-        coachOpen ? 'rounded-r-none' : ''
+      // A CSS transition (not Framer) so the width eases as the side panel comes and goes.
+      className={`relative min-w-0 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)] transition-[width,padding] duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:transition-none ${
+        // Case study: the same size on every step, short enough to sit in the viewport with room above and below.
+        staged ? 'flex h-[min(540px,calc(100vh-280px))] min-h-[440px] flex-col border border-[var(--color-gray-400)]' : ''
       }`}
+      style={{ width: cardWidth, paddingRight: shrinks ? 20 + PANEL_OVERLAP : 20 }}
     >
       {/* Title, with the state explorer at the right */}
-      <div ref={titleRowRef} className="relative flex items-center justify-between gap-3">
+      <div ref={titleRowRef} className={`relative flex items-center justify-between gap-3 ${staged ? 'hidden' : ''}`}>
         <div className="flex items-center gap-3">
           <QuadrantLogo />
           <Heading tag="h3" variant="heading-5">
@@ -340,7 +548,7 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
       </div>
 
       {/* Summary callout, or the error state */}
-      {showBanner && <div className="mt-4">
+      {showBanner && <div className={staged ? 'mb-6' : 'mt-4'}>
         <AnimatePresence mode="wait" initial={false}>
           {isError ? (
             <motion.div
@@ -364,20 +572,23 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={fade}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[7px] border px-4 py-3"
+              className={`flex items-center justify-between gap-3 rounded-[7px] border px-4 py-3 ${staged ? '' : 'flex-wrap'}`}
               style={{ background: TEAL_BG, borderColor: TEAL_BORDER }}
             >
-              <div className="min-w-0 flex-1 basis-[280px]">
+              <div className={`min-w-0 flex-1 ${staged ? '' : 'basis-[280px]'}`}>
                 <p className="text-[13px] font-semibold" style={{ color: TEAL_TEXT }}>
                   {quadrant.title}
                 </p>
-                <p className="mt-1 text-[12px] leading-[1.5]">{summary}</p>
+                {!staged && <p className="mt-1 text-[12px] leading-[1.5]">{summary}</p>}
               </div>
               <Button
                 variant="secondary"
                 size="small"
                 icon={<Icon name="auto_awesome" isPresentational />}
-                onPress={() => setCoachOpen(true)}
+                onPress={() => {
+                  setCoachOpen(true);
+                  setDetailId(null);
+                }}
               >
                 Explore with Coach
               </Button>
@@ -438,15 +649,15 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
       {!isError && (
         <>
           {/* Chart */}
-          <div className="mt-5 flex">
+          <div className={`flex ${staged ? 'min-h-0 flex-1 pt-3' : 'mt-5'}`}>
             <div className="flex w-6 shrink-0 items-center justify-center">
               <span className="-rotate-90 whitespace-nowrap text-[11px] text-[var(--color-gray-600)]">
                 Workplace Engagement
               </span>
             </div>
-            <div className="min-w-0 flex-1 pl-7">
-              <div className="relative">
-                <div className="relative h-[300px] w-full">
+            <div className={`min-w-0 flex-1 pl-7 ${staged ? 'flex flex-col' : ''}`}>
+              <div className={`relative ${staged ? 'flex min-h-0 flex-1 flex-col' : ''}`}>
+                <div className={`relative w-full ${staged ? 'min-h-0 flex-1' : 'h-[300px]'}`}>
                   {/* y ticks, centred on the edges of the plot */}
                   <span className="absolute -left-1 top-0 -translate-x-full -translate-y-1/2 text-[11px] leading-none text-[var(--color-gray-600)]">
                     {domain.y[1]}
@@ -554,9 +765,15 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
                       left={toLeft(p.x)}
                       top={toTop(p.y)}
                       visible={showPoints && inDomain(p)}
+                      selected={detailPoint?.id === p.id}
+                      hovered={hoveredId === p.id}
                       move={move}
                       fade={fade}
-                      onSelect={() => !zoomed && !staged && setZoomed(quadrantOf(p))}
+                      onSelect={() => {
+                        setDetailId(p.id);
+                        setDetailView('detail');
+                        setCoachOpen(false);
+                      }}
                       onHover={(active) => setHoveredId(active ? p.id : null)}
                     />
                   ))}
@@ -592,12 +809,8 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
           {/* Legend */}
           {showPoints && <AnimatedHeight reducedMotion={reducedMotion}><div className="pl-6 pt-3">
             <div
-              className={
-                legendExpanded
-                  ? 'grid gap-x-5 gap-y-2'
-                  : 'flex flex-nowrap items-center gap-x-5 overflow-hidden'
-              }
-              style={legendExpanded ? { gridTemplateColumns: `repeat(${LEGEND_COLUMNS}, minmax(0, 1fr))` } : undefined}
+              className="grid gap-x-5 gap-y-2"
+              style={{ gridTemplateColumns: `repeat(${LEGEND_COLUMNS}, minmax(0, 1fr))` }}
             >
               {legendShown.map((p) => (
                 <motion.span
@@ -606,12 +819,10 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={reducedMotion ? { duration: 0 } : { duration: 0.4 }}
-                  className={`inline-flex items-center gap-2 text-[12px] leading-tight ${
-                    legendExpanded ? 'min-w-0' : 'shrink-0 whitespace-nowrap'
-                  }`}
+                  className="inline-flex min-w-0 items-center gap-2 text-[12px] leading-tight"
                 >
                   <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: p.color }} />
-                  <span className={legendExpanded ? 'min-w-0' : ''}>{p.name}</span>
+                  <span className="min-w-0">{p.name}</span>
                 </motion.span>
               ))}
             </div>
@@ -648,22 +859,58 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
       )}
     </div>
 
-    {/* Coach side panel, opened from the banner */}
+    {/* Side panel: Coach (opened from the banner) or the detail for a selected data point.
+        It floats over the chart's right edge, and the chart card slides over to make room. */}
     <AnimatePresence initial={false}>
-      {coachOpen && (
+      {sideOpen && (
         <motion.aside
-          key="coach"
-          aria-label="Coach"
-          className="shrink-0 overflow-hidden border-l border-[var(--color-gray-300)]"
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 256, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 220, damping: 30 }}
+          key="side"
+          aria-label={coachOpen ? 'Coach' : 'Score detail'}
+          className={`absolute -bottom-2 -top-2 z-30 overflow-hidden rounded-[14px] border bg-[var(--color-white)] ${
+            staged ? '-right-6' : 'right-0'
+          } ${
+            staged
+              ? 'border-[var(--color-gray-400)]'
+              : 'border-[var(--color-gray-300)] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.3)]'
+          }`}
+          initial={{ opacity: 0, x: 48, width: sideWidth }}
+          animate={{ opacity: 1, x: 0, width: sideWidth }}
+          exit={{ opacity: 0, x: 48 }}
+          transition={springTransition}
         >
-          <CoachPanel quadrantId={quadrantId} onClose={() => setCoachOpen(false)} />
+          {coachOpen ? (
+            <CoachPanel
+              quadrantId={quadrantId}
+              onClose={() => setCoachOpen(false)}
+              autoPlay={coachAuto}
+              autoQuestion={staged ? coachWalkthroughQuestion : undefined}
+              autoReply={coachWalkthroughAnswer}
+              onAutoEvent={onCoachAuto}
+            />
+          ) : (
+            detailPoint && (
+              <div className="absolute inset-0 overflow-y-auto">
+                <ScoreDetailPanel
+                  key={detailPoint.id}
+                  view={detailView}
+                  onViewChange={setDetailView}
+                  hoverRow={detailHoverRow}
+                  point={detailPoint}
+                  comparisonName={comparisonPointName}
+                  comparison={comparisonPoint}
+                  onClose={() => {
+                    setDetailId(null);
+                    setDetailView('detail');
+                  }}
+                />
+              </div>
+            )
+          )}
         </motion.aside>
       )}
     </AnimatePresence>
+
+    <ScriptedCursor cursor={cursor} reducedMotion={reducedMotion} />
     </div>
   );
 }
