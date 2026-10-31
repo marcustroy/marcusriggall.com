@@ -230,3 +230,9 @@ export const coachFollowUps = [
   'I would start with the departments sitting closest to the threshold, since small improvements there move them into the next quadrant.',
   'Happy to help. I can draft a short summary for your leadership team or suggest actions for the lowest-scoring areas.',
 ];
+
+// The follow-up typed in the case study walkthrough, and Coach's answer to it.
+export const coachWalkthroughQuestion = 'Which departments are scoring lower on Engagement and why?';
+
+export const coachWalkthroughAnswer =
+  'Three departments are scoring lowest on Engagement: **Accounting (8%)**, **Marketing (8%)** and **Sales (21%)**.\n\nWhat is driving it:\n• Recognition and career growth are the lowest-scoring questions in all three groups.\n• Marketing and Sales report the heaviest workloads, which is pulling down energy and connection to the work.\n• Accounting scores lowest on seeing a motivating future at the company.\n\nI would start with Accounting and Marketing, since they sit furthest from the threshold. I can draft an action plan for either.';

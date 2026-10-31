@@ -47,12 +47,19 @@ function introText(quadrantId: QuadrantId) {
   return `Your organization sits in the **${quadrant.name}** quadrant.\n\nHere are the key themes I can see:\n${themes}`;
 }
 
+export type CoachAutoEvent = 'intro-done' | 'typed' | 'sent';
+
 interface CoachPanelProps {
   quadrantId: QuadrantId;
   onClose: () => void;
+  /** Scripted walkthrough: once the intro has streamed, types this question and sends it. */
+  autoPlay?: boolean;
+  autoQuestion?: string;
+  autoReply?: string;
+  onAutoEvent?: (event: CoachAutoEvent) => void;
 }
 
-export default function CoachPanel({ quadrantId, onClose }: CoachPanelProps) {
+export default function CoachPanel({ quadrantId, onClose, autoPlay = false, autoQuestion, autoReply, onAutoEvent }: CoachPanelProps) {
   const reducedMotion = useReducedMotion();
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
@@ -61,6 +68,8 @@ export default function CoachPanel({ quadrantId, onClose }: CoachPanelProps) {
   const scroller = useRef<HTMLDivElement>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const streamers = useRef<ReturnType<typeof setInterval>[]>([]);
+  const autoTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const autoStarted = useRef(false);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -112,19 +121,62 @@ export default function CoachPanel({ quadrantId, onClose }: CoachPanelProps) {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: reducedMotion ? 'auto' : 'smooth' });
   }, [messages, reducedMotion]);
 
+  const submit = (text: string, replyOverride?: string) => {
+    setDraft('');
+    setMessages((m) => [...m, { id: nextId.current++, role: 'user', text, shown: text.length }]);
+    const reply = replyOverride ?? coachFollowUps[followUpIndex.current++ % coachFollowUps.length];
+    timers.current.push(setTimeout(() => coachReply(reply), reducedMotion ? 0 : 500));
+  };
+
   const send = (event: FormEvent) => {
     event.preventDefault();
     const text = draft.trim();
     if (!text) return;
-    setDraft('');
-    setMessages((m) => [...m, { id: nextId.current++, role: 'user', text, shown: text.length }]);
-    const reply = coachFollowUps[followUpIndex.current % coachFollowUps.length];
-    followUpIndex.current += 1;
-    timers.current.push(setTimeout(() => coachReply(reply), reducedMotion ? 0 : 500));
+    submit(text, text === autoQuestion ? autoReply : undefined);
   };
 
+  // Scripted walkthrough: after the intro has streamed, type the question, then send it.
+  const introDone = messages.some((m) => m.role === 'coach' && !m.loading && m.shown >= m.text.length);
+  useEffect(() => {
+    if (!autoPlay || !autoQuestion || !introDone || autoStarted.current) return;
+    autoStarted.current = true;
+    onAutoEvent?.('intro-done');
+    const at = (ms: number, fn: () => void) => autoTimers.current.push(setTimeout(fn, ms));
+    at(1400, () => {
+      let typed = 0;
+      const interval = setInterval(() => {
+        typed += 1;
+        setDraft(autoQuestion.slice(0, typed));
+        if (typed >= autoQuestion.length) {
+          clearInterval(interval);
+          onAutoEvent?.('typed');
+          at(1600, () => {
+            submit(autoQuestion, autoReply);
+            onAutoEvent?.('sent');
+          });
+        }
+      }, 45);
+      autoTimers.current.push(interval as unknown as ReturnType<typeof setTimeout>);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay, autoQuestion, introDone]);
+
+  // Stop the script if the viewer takes over.
+  useEffect(() => {
+    if (autoPlay) return;
+    autoTimers.current.forEach(clearTimeout);
+    autoTimers.current = [];
+  }, [autoPlay]);
+
+  useEffect(
+    () => () => {
+      autoTimers.current.forEach(clearTimeout);
+    },
+    []
+  );
+
   return (
-    <div className="flex h-full w-[256px] flex-col bg-[var(--color-white)] text-[var(--color-purple-800)]">
+    <div className="flex h-full w-full flex-col bg-[var(--color-white)] text-[var(--color-purple-800)]">
       {/* Header */}
       <div className="flex items-center justify-between gap-1 px-4 pb-2 pt-4">
         <Heading tag="h3" variant="heading-5">
@@ -195,12 +247,20 @@ export default function CoachPanel({ quadrantId, onClose }: CoachPanelProps) {
         <label htmlFor="coach-reply" className="mb-1 block text-[11px] font-semibold">
           Reply to Coach
         </label>
-        <div className="flex items-center gap-2 rounded-[7px] border-2 border-[var(--color-gray-500)] bg-[var(--color-white)] py-1 pl-3 pr-1">
-          <input
+        <div className="flex items-end gap-2 rounded-[7px] border-2 border-[var(--color-gray-500)] bg-[var(--color-white)] py-1 pl-3 pr-1">
+          {/* Tall enough for a few lines, so a longer question can be read as it is typed */}
+          <textarea
             id="coach-reply"
             value={draft}
+            rows={3}
             onChange={(e) => setDraft(e.target.value)}
-            className="min-w-0 flex-1 bg-transparent text-[12px] outline-none"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
+            className="min-w-0 flex-1 resize-none bg-transparent py-1 text-[12px] leading-[1.4] outline-none"
             autoComplete="off"
           />
           <Button

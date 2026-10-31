@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { CSSGradientBackground } from "@/components/CSSGradientBackground";
 import MotionProvider from "@/components/MotionProvider";
+import { ProjectTransitionProvider } from "@/components/work/ProjectTransition";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -61,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
@@ -70,7 +71,9 @@ export default function RootLayout({
         className={`${inter.variable} antialiased`}
       >
         <CSSGradientBackground />
-        <MotionProvider>{children}</MotionProvider>
+        <MotionProvider>
+          <ProjectTransitionProvider>{children}</ProjectTransitionProvider>
+        </MotionProvider>
       </body>
     </html>
   );
