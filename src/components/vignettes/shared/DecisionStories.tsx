@@ -57,7 +57,7 @@ export default function DecisionStories({
 
   if (alwaysExpanded) {
     return (
-      <div className="mt-6 divide-y divide-black/8">
+      <div className="mt-6 divide-y divide-border-strong">
         {stories.map((story) => (
           <div key={story.id} className={`py-4 first:pt-0 ${story.hideDividerBelow ? 'border-b-0' : ''}`}>
             {story.title && <h4 className="type-body font-medium text-primary">{story.title}</h4>}
@@ -83,7 +83,7 @@ export default function DecisionStories({
 
   return (
     <div className="mt-6">
-      <div className="divide-y divide-black/8">
+      <div className="divide-y divide-border-strong">
         {stories.map((story) => {
           const isExpanded = expandedId === story.id;
           const buttonId = `decision-story-btn-${story.id}`;

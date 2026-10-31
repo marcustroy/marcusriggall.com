@@ -41,14 +41,14 @@ const base: Omit<Project, 'tint' | 'accent' | 'period'>[] = [
 ];
 
 const extras: Record<string, { accent: string; period: string }> = {
-  'culture-quadrant': { accent: '#2A9D96', period: 'Culture Amp, 2026' },
-  'heatmap-comparisons': { accent: '#C93B55', period: 'Culture Amp, 2025' },
-  prototyping: { accent: '#8B5CF6', period: 'Culture Amp, 2025-2026' },
-  'sensitive-comments': { accent: '#3F9A86', period: 'Culture Amp, 2026' },
+  'culture-quadrant': { accent: 'var(--accent-culture-quadrant)', period: 'Culture Amp, 2026' },
+  'heatmap-comparisons': { accent: 'var(--accent-heatmap-comparisons)', period: 'Culture Amp, 2025' },
+  prototyping: { accent: 'var(--accent-prototyping)', period: 'Culture Amp, 2025-2026' },
+  'sensitive-comments': { accent: 'var(--accent-sensitive-comments)', period: 'Culture Amp, 2026' },
 };
 
 export const projects: Project[] = base.map((item) => ({
   ...item,
-  tint: item.id === 'prototyping' ? '#F1EBFE' : STAGE_TINTS[item.id],
+  tint: item.id === 'prototyping' ? 'var(--tint-design-sandbox)' : STAGE_TINTS[item.id],
   ...extras[item.id],
 }));

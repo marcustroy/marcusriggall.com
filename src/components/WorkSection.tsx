@@ -161,7 +161,7 @@ function MobileItem({
             </ScaledPreview>
           </Stage>
         ) : (
-          <div className="aspect-[4/3] rounded-lg bg-neutral-100" />
+          <div className="aspect-[4/3] rounded-lg bg-muted" />
         )}
       </motion.div>
     </div>
@@ -222,7 +222,7 @@ function DesktopGroup({
             {isActive && (
               <motion.div
                 layoutId="work-active-highlight"
-                className="absolute inset-0 rounded-lg bg-neutral-200/80"
+                className="absolute inset-0 rounded-lg bg-hover"
                 transition={panelTransition}
                 aria-hidden="true"
               />

@@ -55,7 +55,7 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
   // UI-first layout: a full-width tinted band (nav, headline, UI) above a white write-up.
   if (content.uiAbove) {
     return (
-      <div className="min-h-screen overflow-x-hidden bg-white">
+      <div className="min-h-screen overflow-x-hidden bg-background">
         <Header
           targetId="case-study-header"
           rootMargin="0px"

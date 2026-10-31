@@ -1,13 +1,13 @@
 'use client';
 
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { heroContent, introContent } from './content';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import { timing, timingReduced } from '@/lib/animations';
-import TextReveal from './TextReveal';
+import MrMonogram from '@/components/work/MrMonogram';
 import { LinkedInIcon, GitHubIcon, ResumeButton, RESUME_URL, iconButtonClass } from '@/components/SiteHeaderBar';
 import { trackExternalLinkClicked } from '@/lib/analytics';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const LINKEDIN_URL = 'https://www.linkedin.com/in/marcusriggall';
 const GITHUB_URL = 'https://github.com/marcustroy';
@@ -19,27 +19,14 @@ export default function HeroContent() {
   return (
     <div className="flex w-full items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        {/* Profile photo */}
-        <div className="shrink-0 w-20 h-20 rounded-full overflow-hidden">
-          <Image
-            src="/avatars/headshot.jpg"
-            alt={heroContent.name}
-            width={80}
-            height={80}
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
+        {/* The MR initials, written on as they load */}
+        <MrMonogram color="var(--primary)" className="w-20 shrink-0" />
 
         {/* All text in single column */}
         <div className="flex flex-col gap-1">
           {/* Name with pixel font */}
           <h1 className="type-pixel whitespace-nowrap !m-0">
-            <TextReveal
-              text={heroContent.headline}
-              mode="characters"
-              staggerDelay={t.intro.nameStagger}
-              duration={0.4}
-            />
+            {heroContent.headline}
           </h1>
 
           {/* Tagline */}
@@ -61,7 +48,7 @@ export default function HeroContent() {
         </div>
 
       {/* Social links */}
-      <div className="flex items-center gap-1 -mr-1.5">
+      <div className="flex items-center gap-1">
         <ResumeButton onClick={() => trackExternalLinkClicked('hero-resume', RESUME_URL)} />
         <a
           href={LINKEDIN_URL}
@@ -83,6 +70,7 @@ export default function HeroContent() {
         >
           <GitHubIcon />
         </a>
+        <ThemeToggle />
       </div>
     </div>
   );

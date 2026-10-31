@@ -27,7 +27,7 @@ function Stepper({ step, onStep }: { step: number; onStep: (s: number) => void }
     <div
       role="group"
       aria-label="Walkthrough steps"
-      className="relative mx-auto flex h-[44px] w-full max-w-[400px] items-center justify-between rounded-full bg-white px-[14px]"
+      className="relative mx-auto flex h-[44px] w-full max-w-[400px] items-center justify-between rounded-full bg-[var(--stepper-bg)] px-[14px]"
     >
       {steps.map((_, i) => (
         <button
@@ -59,12 +59,12 @@ export default function PcqWalkthrough() {
   return (
     // The UI with its slider centred beneath, and the step's description to the right (below on small screens).
     <div className="kaizen-scope relative grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,820px)_240px]">
-      <div className="min-w-0">
+      <div className="theme-light min-w-0">
         <PcqPanel stage={(step + 2) as PcqStage} />
       </div>
       <p
         aria-live="polite"
-        className="mx-auto max-w-[460px] text-center text-[15px] leading-snug text-[#1d1d1f] lg:col-start-2 lg:row-start-1 lg:mx-0 lg:self-center lg:text-left"
+        className="mx-auto max-w-[460px] text-center text-[15px] leading-snug text-primary lg:col-start-2 lg:row-start-1 lg:mx-0 lg:self-center lg:text-left"
       >
         {steps[step].caption}
       </p>

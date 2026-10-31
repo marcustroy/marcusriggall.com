@@ -229,7 +229,7 @@ function Cover({ overlay, onCovered }: { overlay: Overlay; onCovered: () => void
         {/* The MR initials are written in the project's accent colour once the row has grown over the screen */}
         <div className="absolute inset-0 flex items-center justify-center">
           <MrMonogram
-            color={overlay.accent ?? '#1d1d1f'}
+            color={overlay.accent ?? 'var(--primary)'}
             delay={0.45}
             onWritten={onCovered}
             className="w-[min(240px,34vw)]"
@@ -311,7 +311,7 @@ function Cover({ overlay, onCovered }: { overlay: Overlay; onCovered: () => void
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
       <motion.div
-        className="absolute overflow-hidden bg-white"
+        className="theme-light absolute overflow-hidden bg-white"
         style={{ left: preview.left, top: preview.top, width: preview.width, height: preview.height, transformOrigin: `${cx - preview.left}px ${cy - preview.top}px` }}
         initial={{ scale: 1, opacity: 1 }}
         animate={{ scale, opacity: [1, 1, 0] }}

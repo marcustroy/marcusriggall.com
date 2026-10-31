@@ -21,7 +21,7 @@ interface HeaderProps {
   bandColor?: string;
 }
 
-export default function Header({ targetId = 'hero', rootMargin = '-80px 0px 0px 0px', homeHref, bandId, bandColor }: HeaderProps) {
+export default function Header({ targetId = 'hero', rootMargin = '0px', homeHref, bandId, bandColor }: HeaderProps) {
   const reducedMotion = useReducedMotion();
   const [isVisible, setIsVisible] = useState(false);
   const [overBand, setOverBand] = useState(false);
@@ -69,14 +69,15 @@ export default function Header({ targetId = 'hero', rootMargin = '-80px 0px 0px 
       {isVisible && (
         <motion.header
           className={`fixed top-0 left-0 right-0 z-50 px-6 lg:px-10 2xl:px-16 border-b transition-colors duration-300 ${
-            bandId ? 'border-black/5' : 'bg-background/85 backdrop-blur-xl border-border/50'
+            bandId ? 'border-border' : 'bg-background/85 backdrop-blur-xl border-border/50'
           }`}
-          style={bandId ? { backgroundColor: overBand && bandColor ? bandColor : '#ffffff' } : undefined}
-          initial={{ y: -64, opacity: 0 }}
+          style={bandId ? { backgroundColor: overBand && bandColor ? bandColor : 'var(--background)' } : undefined}
+          // Fades in place, with only a small drop, so it doesn't slide over the hero's own buttons as they scroll away.
+          initial={{ y: reducedMotion ? 0 : -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -64, opacity: 0 }}
+          exit={{ y: reducedMotion ? 0 : -10, opacity: 0 }}
           transition={{
-            duration: reducedMotion ? 0.15 : 0.25,
+            duration: reducedMotion ? 0.15 : 0.3,
             ease: [0.25, 0.1, 0.25, 1],
           }}
         >

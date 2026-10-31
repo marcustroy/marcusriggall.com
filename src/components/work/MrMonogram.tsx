@@ -30,6 +30,8 @@ const WRITE_EASE = [0.3, 0.05, 0.45, 1] as const;
 interface MrMonogramProps {
   color: string;
   className?: string;
+  /** Show the finished initials straight away, with no writing animation. */
+  still?: boolean;
   /** Seconds before the first stroke starts. */
   delay?: number;
   /** Called once the last stroke has been drawn. */
@@ -37,7 +39,7 @@ interface MrMonogramProps {
 }
 
 // Writes the MR initials onto the screen, stroke by stroke.
-export default function MrMonogram({ color, className, delay = 0, onWritten }: MrMonogramProps) {
+export default function MrMonogram({ color, className, still = false, delay = 0, onWritten }: MrMonogramProps) {
   const maskId = useId();
   const paths = useRef<(SVGPathElement | null)[]>([]);
   const written = useRef(onWritten);
@@ -46,6 +48,7 @@ export default function MrMonogram({ color, className, delay = 0, onWritten }: M
   });
 
   useEffect(() => {
+    if (still) return;
     const lengths = paths.current.map((path) => path?.getTotalLength() ?? 0);
     // A stroke's share of the pen's travel, so that every stroke is drawn at the same speed.
     const total = lengths.reduce((sum, length) => sum + length, 0) + PEN_LIFT * (STROKES.length - 1);
@@ -86,7 +89,7 @@ export default function MrMonogram({ color, className, delay = 0, onWritten }: M
               fill="none"
               pathLength={1}
               strokeDasharray="1 2"
-              strokeDashoffset={1}
+              strokeDashoffset={still ? 0 : 1}
             />
           ))}
         </mask>

@@ -61,7 +61,7 @@ export default function WorkBlend() {
                   >
                     <div className="hidden md:block">
                       {/* Every project shows the same height of its UI (the Design Sandbox's whole UI, with its padding), so open rows match */}
-                      <div className="aspect-[660/395] overflow-hidden rounded-t-xl border border-b-0 border-[var(--color-gray-400)] bg-white">
+                      <div className="aspect-[660/395] overflow-hidden theme-light rounded-t-xl border border-b-0 border-[var(--color-gray-400)] bg-white">
                         <ProjectPreview id={project.id} showcase />
                       </div>
                     </div>

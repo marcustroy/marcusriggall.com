@@ -13,7 +13,7 @@ import type { BorderSettings } from './vignettes/ai-suggestions/content';
 function WorkCard({ title, category, children }: { title: string; category: string; children: React.ReactNode }) {
   return (
     <motion.article
-      className="rounded-2xl border border-border/60 bg-white overflow-hidden flex flex-col"
+      className="rounded-2xl border border-border/60 bg-background-elevated overflow-hidden flex flex-col"
       {...fadeInUp}
     >
       <div className="p-5 pb-3">

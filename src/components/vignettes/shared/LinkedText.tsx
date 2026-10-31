@@ -5,7 +5,7 @@ const LINK_PATTERN = /\[([^\]]+)\]\(([^)\s]+)\)/g;
 // Inline styles, because the site's global `a { text-decoration: none; color: inherit }` rule
 // would override Tailwind's utility classes. Kaizen blue-500 so links stand out from body text.
 const linkStyle: React.CSSProperties = {
-  color: '#0168B3',
+  color: 'var(--link)',
   fontWeight: 500,
   textDecoration: 'underline',
   textDecorationThickness: '1.5px',
