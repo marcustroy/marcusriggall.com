@@ -41,9 +41,9 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
   if (content.uiAbove) {
     return (
       <div className="min-h-screen overflow-x-hidden bg-white">
-        <div style={{ backgroundColor: STAGE_TINTS[content.stageId] }}>
+        <div style={{ backgroundColor: content.tint ?? STAGE_TINTS[content.stageId] }}>
           <header className="px-6 lg:px-10 2xl:px-16">
-            <SiteHeaderBar />
+            <SiteHeaderBar onTint />
           </header>
           <section className="pt-8 pb-8 lg:pb-10 px-6 lg:px-10 2xl:px-16">
             <div className="max-w-[1200px] mx-auto">
@@ -53,7 +53,13 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
                 {content.meta && <p className="type-small text-secondary mt-3">{content.meta}</p>}
               </motion.div>
               <VignetteContainer id={content.slug} allowOverflow>
-                {children}
+                {content.unstaged ? (
+                  children
+                ) : (
+                  <Stage id={content.stageId} frameless>
+                    {children}
+                  </Stage>
+                )}
               </VignetteContainer>
             </div>
           </section>
@@ -75,14 +81,25 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
                 ))}
               </div>
             ) : (
-              <div className="max-w-[760px]">
+              <>
                 {content.body && (
-                  <p className="type-body text-primary whitespace-pre-line">
+                  <p className="type-body text-primary max-w-[760px] whitespace-pre-line">
                     <LinkedText text={content.body} />
                   </p>
                 )}
-                <DecisionStories stories={content.decisionStories} alwaysExpanded />
-              </div>
+                {/* Each story gets its own column */}
+                <div
+                  className={`grid grid-cols-1 gap-10 md:gap-12 ${content.body ? 'mt-10' : ''} ${
+                    content.decisionStories.length >= 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'
+                  }`}
+                >
+                  {content.decisionStories.map((story) => (
+                    <div key={story.id} className="min-w-0 [&>div]:!mt-0">
+                      <DecisionStories stories={[story]} alwaysExpanded />
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </motion.div>
         </section>

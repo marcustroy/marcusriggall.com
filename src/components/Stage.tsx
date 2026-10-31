@@ -18,7 +18,28 @@ const UNFRAMED_PANELS = new Set(['prototyping']);
 // Every preview sits the same distance from the edge of its coloured frame.
 export const STAGE_PADDING = 'p-6';
 
-export function Stage({ id, className = '', children }: { id: string; className?: string; children: React.ReactNode }) {
+const CARD_SHADOW = 'shadow-[0_1px_2px_rgba(0,0,0,0.05),0_8px_16px_-8px_rgba(0,0,0,0.08),0_32px_64px_-24px_rgba(0,0,0,0.22)]';
+
+export function Stage({
+  id,
+  className = '',
+  frameless = false,
+  children,
+}: {
+  id: string;
+  className?: string;
+  /** Skip the tinted frame, for a page whose own background already carries the tint. */
+  frameless?: boolean;
+  children: React.ReactNode;
+}) {
+  if (frameless) {
+    return (
+      <div className={`${CARD_SHADOW} ${UNFRAMED_PANELS.has(id) ? 'rounded-xl bg-white p-6' : 'rounded-lg bg-white'}`}>
+        {children}
+      </div>
+    );
+  }
+
   return (
     <motion.div
       className={`relative rounded-2xl ${className}`}

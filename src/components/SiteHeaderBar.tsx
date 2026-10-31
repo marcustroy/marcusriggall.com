@@ -19,11 +19,19 @@ export function GitHubIcon({ className = 'h-5 w-5' }: { className?: string }) {
 
 export const RESUME_URL = '/resume';
 
-export function ResumeButton({ onClick }: { onClick?: () => void }) {
+// Buttons share one hover fill: light grey, or white when the bar sits on a tinted band.
+const hoverFill = (onTint: boolean) => (onTint ? 'hover:bg-white' : 'hover:bg-neutral-200/80');
+
+export const iconButtonClass = (onTint = false) =>
+  `flex items-center rounded-lg p-1.5 ${hoverFill(onTint)} transition-colors duration-200`;
+
+export function ResumeButton({ onClick, onTint = false }: { onClick?: () => void; onTint?: boolean }) {
   return (
     <Link
       href={RESUME_URL}
-      className="type-small font-medium text-black rounded-lg px-3 py-1 hover:bg-neutral-200/80 transition-colors duration-200"
+      className={`type-small font-medium rounded-lg px-3 py-[7px] ${hoverFill(onTint)} transition-colors duration-200`}
+      // Inline: the global `a { color: inherit }` rule outranks Tailwind's layered text colours.
+      style={{ color: '#000' }}
       onClick={onClick}
     >
       Resume
@@ -37,10 +45,13 @@ export default function SiteHeaderBar({
   onHome = false,
   onLinkedInClick,
   onGitHubClick,
+  onTint = false,
 }: {
   onHome?: boolean;
   onLinkedInClick?: () => void;
   onGitHubClick?: () => void;
+  /** The bar sits on a tinted band, so buttons use a white hover for contrast. */
+  onTint?: boolean;
 }) {
   const nameClassName = 'font-medium text-primary hover:opacity-70 transition-opacity';
 
@@ -59,14 +70,14 @@ export default function SiteHeaderBar({
       ) : (
         <Link href="/" className={nameClassName}>Marcus Riggall</Link>
       )}
-      <div className="flex items-center gap-4">
-        <ResumeButton />
+      <div className="flex items-center gap-1 -mr-1.5">
+        <ResumeButton onTint={onTint} />
         <a
           href="https://www.linkedin.com/in/marcusriggall"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="LinkedIn"
-          className="flex items-center p-2 -m-2 text-secondary hover:text-[#0A66C2] transition-colors duration-200"
+          className={iconButtonClass(onTint)}
           onClick={onLinkedInClick}
         >
           <LinkedInIcon />
@@ -76,7 +87,7 @@ export default function SiteHeaderBar({
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
-          className="flex items-center p-2 -m-2 text-secondary hover:text-primary transition-colors duration-200"
+          className={iconButtonClass(onTint)}
           onClick={onGitHubClick}
         >
           <GitHubIcon />

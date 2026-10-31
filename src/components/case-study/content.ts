@@ -1,4 +1,5 @@
 import type { DecisionStory } from '@/components/vignettes/shared/DecisionStories'
+import { prototypingContent } from '@/components/vignettes/prototyping/content'
 
 export interface CaseStudyContent {
   /** URL segment, e.g. "heatmap-survey-comparisons" */
@@ -9,6 +10,8 @@ export interface CaseStudyContent {
   wideUi?: boolean
   /** Stack the layout with the UI above the write-up. */
   uiAbove?: boolean
+  /** Overrides the band colour (defaults to the project's tint in Stage). */
+  tint?: string
   /** Short line under the headline, e.g. company and year. */
   meta?: string
   projectName: string
@@ -22,9 +25,22 @@ export interface CaseStudyContent {
 }
 
 export const caseStudies: Record<string, CaseStudyContent> = {
+  'design-sandbox': {
+    slug: 'design-sandbox',
+    stageId: 'prototyping',
+    uiAbove: true,
+    // Zara Hussain's avatar circle in the sandbox UI: #8B5CF6 at 12% over white.
+    tint: '#F1EBFE',
+    projectName: prototypingContent.projectName,
+    headline: 'Internal repository to make AI prototyping faster and easier for designers and product managers',
+    meta: 'Culture Amp, 2025',
+    body: prototypingContent.body,
+    decisionStories: prototypingContent.decisionStories,
+  },
   'heatmap-survey-comparisons': {
     slug: 'heatmap-survey-comparisons',
     stageId: 'heatmap-comparisons',
+    uiAbove: true,
     projectName: 'Heatmap Survey Comparisons',
     headline:
       'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
