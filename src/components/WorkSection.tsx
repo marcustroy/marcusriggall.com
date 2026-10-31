@@ -6,10 +6,14 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { fadeInUp } from '@/lib/animations';
 import SectionTitle from './SectionTitle';
 import { Stage, STAGE_PADDING } from './Stage';
-import HeatmapPanel from './vignettes/heatmap-comparisons/HeatmapPanel';
-import PcqPanel from './vignettes/pcq/PcqPanel';
-import SandboxPanel from './vignettes/prototyping/SandboxPanel';
-import SensitiveCommentsPanel from './vignettes/sensitive-comments/SensitiveCommentsPanel';
+import { WorkPanel, ScaledPreview } from './work/Preview';
+import { projects } from './work/projects';
+import { useProjectTransition } from './work/ProjectTransition';
+import { useWorkLayout } from './work/WorkLayout';
+import WorkGrid from './work/WorkGrid';
+import WorkBands from './work/WorkBands';
+import WorkIndex from './work/WorkIndex';
+import WorkBlend from './work/WorkBlend';
 
 interface WorkItem {
   id: string;
@@ -27,32 +31,7 @@ const linkTargetProps = (href: string) =>
 // The Tools group is hidden while this list is empty. Add items here (and a panel in WorkPanel) to bring it back.
 const toolItems: WorkItem[] = [];
 
-const projectItems: WorkItem[] = [
-  {
-    id: 'culture-quadrant',
-    title: 'Performance Culture Quadrant',
-    description: 'Connecting Engaging Culture and Performance Confidence to help customers understand their organisations culture and identify the path to Peak Performance',
-    href: '/performance-culture-quadrant',
-  },
-  {
-    id: 'heatmap-comparisons',
-    title: 'Heatmap Survey Comparisons',
-    description: 'Comparisons across surveys help customers understand how results change over time and across teams in a single view',
-    href: '/heatmap-survey-comparisons',
-  },
-  {
-    id: 'prototyping',
-    title: 'Design Sandbox',
-    description: 'Part of the small team of designers who maintained and improved an internal repository to make AI prototyping faster and easier for designers and product managers',
-    href: '/design-sandbox',
-  },
-  {
-    id: 'sensitive-comments',
-    title: 'Sensitive Comments Management',
-    description: 'Leveraging AI to identify sensitive comments to be reviewed and redacted',
-    href: '/sensitive-comments-management',
-  },
-];
+const projectItems: WorkItem[] = projects;
 
 const workItemOrder = [...toolItems, ...projectItems].map((item) => item.id);
 
@@ -77,17 +56,6 @@ const panelVariants = {
     y: direction * -14,
   }),
 };
-
-function WorkPanel({ id }: { id: string }) {
-  return (
-    <>
-      {id === 'heatmap-comparisons' && <HeatmapPanel />}
-      {id === 'culture-quadrant' && <PcqPanel />}
-      {id === 'sensitive-comments' && <SensitiveCommentsPanel />}
-      {id === 'prototyping' && <SandboxPanel activeStory={null} />}
-    </>
-  );
-}
 
 function PanelRenderer({ activeId, activeIndex }: { activeId: string; activeIndex: number }) {
   const previousIndexRef = useRef(activeIndex);
@@ -126,46 +94,6 @@ function PanelRenderer({ activeId, activeIndex }: { activeId: string; activeInde
   );
 }
 
-// Panels are designed for a ~680px column. Narrower than that they render at that
-// width and scale down to fit, so they stay intact and tappable. Wider than that
-// they simply fill the available width instead of leaving empty space.
-const PANEL_DESIGN_WIDTH = 680;
-
-function ScaledPreview({ children }: { children: React.ReactNode }) {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [outerWidth, setOuterWidth] = useState(PANEL_DESIGN_WIDTH);
-  const [height, setHeight] = useState<number>();
-
-  useEffect(() => {
-    const outer = outerRef.current;
-    const inner = innerRef.current;
-    if (!outer || !inner) return;
-    const update = () => {
-      const nextScale = Math.min(1, outer.clientWidth / PANEL_DESIGN_WIDTH);
-      setScale(nextScale);
-      setOuterWidth(outer.clientWidth);
-      setHeight(inner.offsetHeight * nextScale);
-    };
-    const observer = new ResizeObserver(update);
-    observer.observe(outer);
-    observer.observe(inner);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={outerRef} className="relative overflow-clip" style={{ height }}>
-      <div
-        ref={innerRef}
-        style={{ width: Math.max(PANEL_DESIGN_WIDTH, outerWidth), transform: `scale(${scale})`, transformOrigin: 'top left' }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
 function GroupLabel({ children }: { children: string }) {
   return (
     <div className="type-label">
@@ -186,6 +114,8 @@ function MobileItem({
   isActive: boolean;
   onActivate: (id: string) => void;
 }) {
+  const { go } = useProjectTransition();
+  const project = projects.find((p) => p.id === item.id);
   const itemRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const isCentered = useInView(itemRef, { margin: '-45% 0px -45% 0px' });
@@ -213,7 +143,7 @@ function MobileItem({
   return (
     <div ref={itemRef} className="flex flex-col gap-4">
       {item.href ? (
-        <Link href={item.href} {...linkTargetProps(item.href)}>
+        <Link href={item.href} {...linkTargetProps(item.href)} onClick={project ? (event) => go(event, project) : undefined}>
           {text}
         </Link>
       ) : (
@@ -278,6 +208,7 @@ function DesktopGroup({
   activeId: string | null;
   onActivate: (id: string) => void;
 }) {
+  const { go } = useProjectTransition();
   return (
     <div className="flex flex-col">
       <div className="px-3 pb-2">
@@ -325,6 +256,10 @@ function DesktopGroup({
             className={className}
             onMouseEnter={() => onActivate(item.id)}
             onFocus={() => onActivate(item.id)}
+            onClick={(event) => {
+              const project = projects.find((p) => p.id === item.id);
+              if (project) go(event, project);
+            }}
           >
             {inner}
           </Link>
@@ -349,14 +284,23 @@ export default function WorkSection() {
   const [activeId, setActiveId] = useState<string | null>((toolItems[0] ?? projectItems[0])?.id ?? null);
   const activeIndex = activeId ? workItemOrder.indexOf(activeId) : 0;
   const [mobileActiveId, setMobileActiveId] = useState<string | null>((toolItems[0] ?? projectItems[0])?.id ?? null);
+  const [layout] = useWorkLayout();
 
   return (
     <section id="work" className="w-full pb-8 lg:pb-12 px-6 lg:px-10 2xl:px-16 scroll-mt-20">
-      <div className="max-w-[1200px] mx-auto pt-8">
+      <div className="max-w-[1200px] mx-auto pt-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <SectionTitle disableScrollTrigger>Work</SectionTitle>
+        {/* <LayoutSwitcher layout={layout} onChange={setLayout} /> is switched off for now; see WorkLayout.tsx */}
       </div>
       <motion.div className="max-w-[1200px] mx-auto mt-6" {...fadeInUp}>
-        {/* Mobile: stacked list */}
+        {layout === 'grid' && <WorkGrid />}
+        {layout === 'bands' && <WorkBands />}
+        {layout === 'index' && <WorkIndex />}
+        {layout === 'blend' && <WorkBlend />}
+
+        {/* List: mobile is a stacked list */}
+        {layout === 'list' && (
+        <>
         <div className="lg:hidden flex flex-col gap-16">
           {toolItems.length > 0 && (
             <MobileGroup label="Tools" items={toolItems} activeId={mobileActiveId} onActivate={setMobileActiveId} />
@@ -395,6 +339,8 @@ export default function WorkSection() {
             )}
           </div>
         </div>
+        </>
+        )}
       </motion.div>
     </section>
   );

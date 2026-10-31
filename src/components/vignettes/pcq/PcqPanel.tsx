@@ -203,12 +203,14 @@ interface PcqPanelProps {
   className?: string;
   /** Reveals the panel in steps for the case study. Leave out to show everything, as on the home page. */
   stage?: PcqStage;
+  /** A static showcase for the home page: typical demographic data, without the state explorer or demographic button. */
+  showcase?: boolean;
 }
 
-export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
+export default function PcqPanel({ className = '', stage, showcase = false }: PcqPanelProps) {
   const reducedMotion = useReducedMotion();
   const staged = stage !== undefined;
-  const [preset, setPreset] = useState<PresetId>(staged && stage >= 3 ? 'typical' : 'real');
+  const [preset, setPreset] = useState<PresetId>(showcase || (staged && stage >= 3) ? 'typical' : 'real');
   const [quadrantId, setQuadrantId] = useState<QuadrantId>('peak-performance');
   const [zoomed, setZoomed] = useState<QuadrantId | null>(null);
   const [explorerOpen, setExplorerOpen] = useState(false);
@@ -244,10 +246,13 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
   }
   const showPoints = !staged || stage >= 2;
   // The case study shows the demographic groups on the chart without the filter button.
-  const showDemographicFilter = !staged;
+  const showDemographicFilter = !staged && !showcase;
   // In the case study the banner only appears with Coach, and the state explorer never does.
   const showBanner = !staged || stage >= 5;
-  const showExplorer = !staged;
+  const showExplorer = !staged && !showcase;
+  // The case study and the home page preview use the slim banner, without its description or the title row.
+  const slimBanner = staged || showcase;
+  // The case study and the home page preview use the slim banner, without its description.
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const titleRowRef = useRef<HTMLDivElement>(null);
 
@@ -478,7 +483,7 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
       style={{ width: cardWidth, paddingRight: shrinks ? 20 + PANEL_OVERLAP : 20 }}
     >
       {/* Title, with the state explorer at the right */}
-      <div ref={titleRowRef} className={`relative flex items-center justify-between gap-3 ${staged ? 'hidden' : ''}`}>
+      <div ref={titleRowRef} className={`relative flex items-center justify-between gap-3 ${slimBanner ? 'hidden' : ''}`}>
         <div className="flex items-center gap-3">
           <QuadrantLogo />
           <Heading tag="h3" variant="heading-5">
@@ -548,7 +553,7 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
       </div>
 
       {/* Summary callout, or the error state */}
-      {showBanner && <div className={staged ? 'mb-6' : 'mt-4'}>
+      {showBanner && <div className={staged ? 'mb-6' : showcase ? 'mb-4' : 'mt-4'}>
         <AnimatePresence mode="wait" initial={false}>
           {isError ? (
             <motion.div
@@ -572,14 +577,14 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={fade}
-              className={`flex items-center justify-between gap-3 rounded-[7px] border px-4 py-3 ${staged ? '' : 'flex-wrap'}`}
+              className={`flex items-center justify-between gap-3 rounded-[7px] border px-4 py-3 ${slimBanner ? '' : 'flex-wrap'}`}
               style={{ background: TEAL_BG, borderColor: TEAL_BORDER }}
             >
-              <div className={`min-w-0 flex-1 ${staged ? '' : 'basis-[280px]'}`}>
+              <div className={`min-w-0 flex-1 ${slimBanner ? '' : 'basis-[280px]'}`}>
                 <p className="text-[13px] font-semibold" style={{ color: TEAL_TEXT }}>
                   {quadrant.title}
                 </p>
-                {!staged && <p className="mt-1 text-[12px] leading-[1.5]">{summary}</p>}
+                {!slimBanner && <p className="mt-1 text-[12px] leading-[1.5]">{summary}</p>}
               </div>
               <Button
                 variant="secondary"
@@ -826,7 +831,7 @@ export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
                 </motion.span>
               ))}
             </div>
-            {legendPoints.length > LEGEND_LIMIT && !staged && (
+            {legendPoints.length > LEGEND_LIMIT && !staged && !showcase && (
               <div className="mt-2 -ml-2">
                 <Button
                   variant="tertiary"
