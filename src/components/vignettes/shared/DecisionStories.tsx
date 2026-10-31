@@ -60,8 +60,8 @@ export default function DecisionStories({
       <div className="mt-6 divide-y divide-black/8">
         {stories.map((story) => (
           <div key={story.id} className={`py-4 first:pt-0 ${story.hideDividerBelow ? 'border-b-0' : ''}`}>
-            <h4 className="type-body font-medium text-primary">{story.title}</h4>
-            <p className="type-body text-primary mt-2 whitespace-pre-line">
+            {story.title && <h4 className="type-body font-medium text-primary">{story.title}</h4>}
+            <p className={`type-body text-primary whitespace-pre-line ${story.title ? 'mt-2' : ''}`}>
               <LinkedText text={story.story} />
             </p>
             {renderStoryExtra?.(story)}

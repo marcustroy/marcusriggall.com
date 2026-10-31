@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import CaseStudyPage from '@/components/case-study/CaseStudyPage'
 import { caseStudies } from '@/components/case-study/content'
-import PcqPanel from '@/components/vignettes/pcq/PcqPanel'
+import PcqWalkthrough from '@/components/vignettes/pcq/walkthrough/PcqWalkthrough'
 
 const content = caseStudies['performance-culture-quadrant']
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <CaseStudyPage content={content}>
-      <PcqPanel />
+      <PcqWalkthrough />
     </CaseStudyPage>
   )
 }

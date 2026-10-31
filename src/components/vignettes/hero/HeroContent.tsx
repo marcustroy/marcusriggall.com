@@ -6,7 +6,7 @@ import { heroContent, introContent } from './content';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import { timing, timingReduced } from '@/lib/animations';
 import TextReveal from './TextReveal';
-import { LinkedInIcon, GitHubIcon, ResumeButton, RESUME_URL } from '@/components/SiteHeaderBar';
+import { LinkedInIcon, GitHubIcon, ResumeButton, RESUME_URL, iconButtonClass } from '@/components/SiteHeaderBar';
 import { trackExternalLinkClicked } from '@/lib/analytics';
 
 const LINKEDIN_URL = 'https://www.linkedin.com/in/marcusriggall';
@@ -61,14 +61,14 @@ export default function HeroContent() {
         </div>
 
       {/* Social links */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1 -mr-1.5">
         <ResumeButton onClick={() => trackExternalLinkClicked('hero-resume', RESUME_URL)} />
         <a
           href={LINKEDIN_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="LinkedIn"
-          className="flex items-center p-2 -m-2 text-secondary hover:text-[#0A66C2] transition-colors duration-200"
+          className={iconButtonClass()}
           onClick={() => trackExternalLinkClicked('hero-linkedin', LINKEDIN_URL)}
         >
           <LinkedInIcon />
@@ -78,7 +78,7 @@ export default function HeroContent() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
-          className="flex items-center p-2 -m-2 text-secondary hover:text-primary transition-colors duration-200"
+          className={iconButtonClass()}
           onClick={() => trackExternalLinkClicked('hero-github', GITHUB_URL)}
         >
           <GitHubIcon />

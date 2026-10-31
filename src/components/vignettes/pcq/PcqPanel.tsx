@@ -112,6 +112,31 @@ function Dot({ point, left, top, visible, move, fade, onSelect, onHover }: DotPr
   );
 }
 
+// Animates its own height as its content changes size, so layout shifts below it ease in.
+function AnimatedHeight({ children, reducedMotion }: { children: React.ReactNode; reducedMotion: boolean }) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | 'auto'>('auto');
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => setHeight(el.getBoundingClientRect().height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height }}
+      transition={reducedMotion ? { duration: 0 } : { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+      style={{ overflow: 'hidden' }}
+    >
+      <div ref={innerRef}>{children}</div>
+    </motion.div>
+  );
+}
+
 function quadrantOf(point: { x: number; y: number }): QuadrantId {
   const right = point.x >= THRESHOLD;
   const top = point.y >= THRESHOLD;
@@ -130,18 +155,42 @@ function QuadrantLogo() {
   );
 }
 
+// Case-study walkthrough steps: 1 chart only, 2 + overall and comparison, 3 + demographics, 4 + Coach.
+export type PcqStage = 1 | 2 | 3 | 4;
+
 interface PcqPanelProps {
   className?: string;
+  /** Reveals the panel in steps for the case study. Leave out to show everything, as on the home page. */
+  stage?: PcqStage;
 }
 
-export default function PcqPanel({ className = '' }: PcqPanelProps) {
+export default function PcqPanel({ className = '', stage }: PcqPanelProps) {
   const reducedMotion = useReducedMotion();
-  const [preset, setPreset] = useState<PresetId>('real');
+  const staged = stage !== undefined;
+  const [preset, setPreset] = useState<PresetId>(staged && stage >= 3 ? 'typical' : 'real');
   const [quadrantId, setQuadrantId] = useState<QuadrantId>('peak-performance');
   const [zoomed, setZoomed] = useState<QuadrantId | null>(null);
   const [explorerOpen, setExplorerOpen] = useState(false);
-  const [coachOpen, setCoachOpen] = useState(false);
-  const [legendExpanded, setLegendExpanded] = useState(false);
+  const [coachOpen, setCoachOpen] = useState(staged && stage >= 4);
+  const [legendExpanded, setLegendExpanded] = useState(staged && stage >= 3);
+  const [syncedStage, setSyncedStage] = useState(stage);
+
+  // Moving between steps resets the panel to what that step shows (adjusting state while rendering).
+  if (stage !== syncedStage) {
+    setSyncedStage(stage);
+    if (stage !== undefined) {
+      setPreset(stage >= 3 ? 'typical' : 'real');
+      setCoachOpen(stage >= 4);
+      setLegendExpanded(stage >= 3);
+      setZoomed(null);
+      setExplorerOpen(false);
+    }
+  }
+  const showPoints = !staged || stage >= 2;
+  const showDemographicFilter = !staged || stage >= 3;
+  // In the case study the banner only appears with Coach, and the state explorer never does.
+  const showBanner = !staged || stage >= 4;
+  const showExplorer = !staged;
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const titleRowRef = useRef<HTMLDivElement>(null);
 
@@ -168,6 +217,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
   const fade = reducedMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' as const };
 
   const isError = preset === 'error';
+  const filterRowVisible = !isError && (showDemographicFilter || !!zoomed);
   const sourceGroups: DemographicGroup[] =
     preset === 'typical' || preset === 'privacy' ? typicalGroups : preset === 'stress' ? stressGroups : [];
   const privacyOn = preset === 'privacy';
@@ -201,7 +251,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
   const inDomain = (p: { x: number; y: number }) =>
     p.x >= domain.x[0] && p.x <= domain.x[1] && p.y >= domain.y[0] && p.y <= domain.y[1];
 
-  const legendPoints = points.filter(inDomain);
+  const legendPoints = showPoints ? points.filter(inDomain) : [];
   const legendLimited = !legendExpanded && legendPoints.length > LEGEND_LIMIT;
   const legendShown = legendLimited ? legendPoints.slice(0, LEGEND_LIMIT) : legendPoints;
   const hovered = points.find((p) => p.id === hoveredId && inDomain(p));
@@ -214,7 +264,11 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
 
   return (
     <div className={`kaizen-scope flex w-full items-stretch ${className}`}>
-    <div className="relative min-w-0 flex-1 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)]">
+    <div
+      className={`relative min-w-0 flex-1 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)] ${
+        coachOpen ? 'rounded-r-none' : ''
+      }`}
+    >
       {/* Title, with the state explorer at the right */}
       <div ref={titleRowRef} className="relative flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -223,7 +277,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
             Performance Culture Quadrant
           </Heading>
         </div>
-        <div>
+        <div className={showExplorer ? '' : 'hidden'}>
           <Button
             variant="secondary"
             size="small"
@@ -286,7 +340,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
       </div>
 
       {/* Summary callout, or the error state */}
-      <div className="mt-4">
+      {showBanner && <div className="mt-4">
         <AnimatePresence mode="wait" initial={false}>
           {isError ? (
             <motion.div
@@ -330,11 +384,17 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </div>}
 
       {/* Filters (the state explorer lives in the title row so it stays available in the error state) */}
-      <div className={`relative mt-4 flex flex-wrap items-center gap-2 ${isError ? 'hidden' : ''}`}>
-            {!isError && (
+      <motion.div
+        initial={false}
+        animate={{ height: filterRowVisible ? 'auto' : 0, opacity: filterRowVisible ? 1 : 0 }}
+        transition={reducedMotion ? { duration: 0 } : { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+        className="relative overflow-hidden"
+      >
+        <div className="flex flex-wrap items-center gap-2 pb-1 pt-4">
+            {!isError && showDemographicFilter && (
               <div className="inline-flex items-center gap-1">
                 <Button
                   variant="tertiary"
@@ -372,7 +432,8 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                 Back to full view
               </Button>
             )}
-      </div>
+        </div>
+      </motion.div>
 
       {!isError && (
         <>
@@ -394,7 +455,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                     {domain.y[0]}
                   </span>
                   {/* quadrants: hover to highlight, select to zoom in */}
-                  {!zoomed &&
+                  {!zoomed && !staged &&
                     quadrants.map((q) => {
                       const left = q.x[0] === 0;
                       const top = q.y[0] === THRESHOLD;
@@ -492,10 +553,10 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                       point={p}
                       left={toLeft(p.x)}
                       top={toTop(p.y)}
-                      visible={inDomain(p)}
+                      visible={showPoints && inDomain(p)}
                       move={move}
                       fade={fade}
-                      onSelect={() => !zoomed && setZoomed(quadrantOf(p))}
+                      onSelect={() => !zoomed && !staged && setZoomed(quadrantOf(p))}
                       onHover={(active) => setHoveredId(active ? p.id : null)}
                     />
                   ))}
@@ -529,7 +590,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
           </div>
 
           {/* Legend */}
-          <div className="mt-3 pl-6">
+          {showPoints && <AnimatedHeight reducedMotion={reducedMotion}><div className="pl-6 pt-3">
             <div
               className={
                 legendExpanded
@@ -539,18 +600,22 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
               style={legendExpanded ? { gridTemplateColumns: `repeat(${LEGEND_COLUMNS}, minmax(0, 1fr))` } : undefined}
             >
               {legendShown.map((p) => (
-                <span
+                <motion.span
                   key={p.id}
+                  layout="position"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={reducedMotion ? { duration: 0 } : { duration: 0.4 }}
                   className={`inline-flex items-center gap-2 text-[12px] leading-tight ${
                     legendExpanded ? 'min-w-0' : 'shrink-0 whitespace-nowrap'
                   }`}
                 >
                   <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: p.color }} />
                   <span className={legendExpanded ? 'min-w-0' : ''}>{p.name}</span>
-                </span>
+                </motion.span>
               ))}
             </div>
-            {legendPoints.length > LEGEND_LIMIT && (
+            {legendPoints.length > LEGEND_LIMIT && !staged && (
               <div className="mt-2 -ml-2">
                 <Button
                   variant="tertiary"
@@ -563,7 +628,7 @@ export default function PcqPanel({ className = '' }: PcqPanelProps) {
                 </Button>
               </div>
             )}
-          </div>
+          </div></AnimatedHeight>}
 
           {/* Privacy notice */}
           {privacyOn && hiddenCount > 0 && (

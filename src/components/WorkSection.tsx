@@ -29,10 +29,10 @@ const toolItems: WorkItem[] = [];
 
 const projectItems: WorkItem[] = [
   {
-    id: 'prototyping',
-    title: 'Design Sandbox',
-    description: 'Part of the small team of designers who maintained and improved an internal repository to make AI prototyping faster and easier for designers and product managers',
-    href: '/design-sandbox',
+    id: 'culture-quadrant',
+    title: 'Performance Culture Quadrant',
+    description: 'Connecting Engaging Culture and Performance Confidence to help customers understand their organisations culture and identify the path to Peak Performance',
+    href: '/performance-culture-quadrant',
   },
   {
     id: 'heatmap-comparisons',
@@ -41,10 +41,10 @@ const projectItems: WorkItem[] = [
     href: '/heatmap-survey-comparisons',
   },
   {
-    id: 'culture-quadrant',
-    title: 'Performance Culture Quadrant',
-    description: 'Connecting Engaging Culture and Performance Confidence to help customers understand their organisations culture and identify the path to Peak Performance',
-    href: '/performance-culture-quadrant',
+    id: 'prototyping',
+    title: 'Design Sandbox',
+    description: 'Part of the small team of designers who maintained and improved an internal repository to make AI prototyping faster and easier for designers and product managers',
+    href: '/design-sandbox',
   },
   {
     id: 'sensitive-comments',
