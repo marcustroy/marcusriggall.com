@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, type Transition } from 'framer-motion';
-import { Button, Heading, Icon } from '@kaizen/components';
+import { Button, Heading, Icon, Menu, MenuItem, MenuPopover, MenuTrigger } from '@kaizen/components';
+import { useKaizenPortal } from '@/lib/useKaizenPortal';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import CoachPanel, { type CoachAutoEvent } from './CoachPanel';
 import ScoreDetailPanel, { type DetailView } from './ScoreDetailPanel';
@@ -18,10 +19,12 @@ import {
   overallByQuadrant,
   overallScores,
   presets,
+  demographics,
+  groupsByDemographic,
+  type DemographicId,
   quadrantById,
   quadrants,
   stressGroups,
-  typicalGroups,
   type DemographicGroup,
   type PresetId,
   type QuadrantId,
@@ -205,11 +208,15 @@ interface PcqPanelProps {
   stage?: PcqStage;
   /** A static showcase for the home page: typical demographic data, without the state explorer or demographic button. */
   showcase?: boolean;
+  /** Coach and the score detail open in a column beside the chart, inside one bordered card, instead of floating over it. */
+  sideBySide?: boolean;
 }
 
-export default function PcqPanel({ className = '', stage, showcase = false }: PcqPanelProps) {
+export default function PcqPanel({ className = '', stage, showcase = false, sideBySide = false }: PcqPanelProps) {
   const reducedMotion = useReducedMotion();
   const staged = stage !== undefined;
+  const [demographicId, setDemographicId] = useState<DemographicId>('department');
+  const menuContainer = useKaizenPortal();
   const [preset, setPreset] = useState<PresetId>(showcase || (staged && stage >= 3) ? 'typical' : 'real');
   const [quadrantId, setQuadrantId] = useState<QuadrantId>('peak-performance');
   const [zoomed, setZoomed] = useState<QuadrantId | null>(null);
@@ -418,7 +425,11 @@ export default function PcqPanel({ className = '', stage, showcase = false }: Pc
   const isError = preset === 'error';
   const filterRowVisible = !isError && (showDemographicFilter || !!zoomed);
   const sourceGroups: DemographicGroup[] =
-    preset === 'typical' || preset === 'privacy' ? typicalGroups : preset === 'stress' ? stressGroups : [];
+    preset === 'typical' || preset === 'privacy'
+      ? groupsByDemographic[demographicId]
+      : preset === 'stress'
+        ? stressGroups
+        : [];
   const privacyOn = preset === 'privacy';
   const groups = privacyOn ? sourceGroups.filter((g) => !g.smallGroup) : sourceGroups;
   const hiddenCount = sourceGroups.length - groups.length;
@@ -466,21 +477,36 @@ export default function PcqPanel({ className = '', stage, showcase = false }: Pc
     setZoomed(null);
   };
 
+  // Picking a demographic plots one point per value of it (each department, region and so on). The privacy
+  // and stress states from the explorer keep their own data until a demographic is picked.
+  const chooseDemographic = (id: DemographicId) => {
+    setDemographicId(id);
+    setDetailId(null);
+    setDetailView('detail');
+    setLegendExpanded(false);
+    setZoomed(null);
+    if (preset !== 'privacy') setPreset('typical');
+  };
+
   const sideWidth = coachOpen ? COACH_WIDTH : DETAIL_WIDTH;
   // On the home page the chart makes room for the panel. In the case study the panel simply overlays it.
   const shrinks = sideOpen && !staged;
-  const cardWidth = shrinks ? `calc(100% - ${sideWidth - PANEL_OVERLAP}px)` : '100%';
+  const overlap = sideBySide ? 0 : PANEL_OVERLAP;
+  const cardWidth = shrinks ? `calc(100% - ${sideWidth - overlap}px)` : '100%';
   const springTransition = reducedMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 220, damping: 30 };
 
   return (
-    <div ref={rootRef} onPointerDownCapture={cancelAuto} className={`kaizen-scope relative w-full ${className}`}>
+    <div ref={rootRef} onPointerDownCapture={cancelAuto} className={`kaizen-scope relative w-full ${
+        sideBySide ? 'overflow-hidden rounded-xl border border-[var(--color-gray-300)] bg-[var(--color-white)]' : ''
+      } ${className}`}
+    >
     <div
       // A CSS transition (not Framer) so the width eases as the side panel comes and goes.
       className={`relative min-w-0 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)] transition-[width,padding] duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:transition-none ${
         // Case study: the same size on every step, short enough to sit in the viewport with room above and below.
         staged ? 'flex h-[min(540px,calc(100vh-280px))] min-h-[440px] flex-col border border-[var(--color-gray-400)]' : ''
-      }`}
-      style={{ width: cardWidth, paddingRight: shrinks ? 20 + PANEL_OVERLAP : 20 }}
+      } ${sideBySide ? '!rounded-none' : ''}`}
+      style={{ width: cardWidth, paddingRight: shrinks ? 20 + overlap : 20 }}
     >
       {/* Title, with the state explorer at the right */}
       <div ref={titleRowRef} className={`relative flex items-center justify-between gap-3 ${slimBanner ? 'hidden' : ''}`}>
@@ -612,18 +638,29 @@ export default function PcqPanel({ className = '', stage, showcase = false }: Pc
         <div className="flex flex-wrap items-center gap-2 pb-1 pt-4">
             {!isError && showDemographicFilter && (
               <div className="inline-flex items-center gap-1">
-                <Button
-                  variant="tertiary"
-                  size="small"
-                  className="heatmap-toolbar-button"
-                  icon={<Icon name="expand_more" isPresentational />}
-                  iconPosition="end"
-                >
-                  <span className="whitespace-nowrap">
-                    <span className="font-semibold">Demographic{demographicActive ? ':' : ''}</span>
-                    {demographicActive ? ' Department' : ''}
-                  </span>
-                </Button>
+                <MenuTrigger>
+                  <Button
+                    variant="tertiary"
+                    size="small"
+                    className="heatmap-toolbar-button"
+                    icon={<Icon name="expand_more" isPresentational />}
+                    iconPosition="end"
+                  >
+                    <span className="whitespace-nowrap">
+                      <span className="font-semibold">Demographic{demographicActive ? ':' : ''}</span>
+                      {demographicActive ? ` ${demographics.find((d) => d.id === demographicId)?.label}` : ''}
+                    </span>
+                  </Button>
+                  <MenuPopover placement="bottom start" UNSTABLE_portalContainer={menuContainer}>
+                    <Menu onAction={(key) => chooseDemographic(key as DemographicId)}>
+                      {demographics.map((item) => (
+                        <MenuItem key={item.id} id={item.id}>
+                          {item.label}
+                        </MenuItem>
+                      ))}
+                    </Menu>
+                  </MenuPopover>
+                </MenuTrigger>
                 {demographicActive && (
                   <Button
                     variant="tertiary"
@@ -871,14 +908,18 @@ export default function PcqPanel({ className = '', stage, showcase = false }: Pc
         <motion.aside
           key="side"
           aria-label={coachOpen ? 'Coach' : 'Score detail'}
-          className={`absolute -bottom-2 -top-2 z-30 overflow-hidden rounded-[14px] border bg-[var(--color-white)] ${
+          className={`absolute z-30 overflow-hidden bg-[var(--color-white)] ${
+            sideBySide ? 'inset-y-0 border-l border-[var(--color-gray-300)]' : '-bottom-2 -top-2 rounded-[14px] border'
+          } ${
             // Flush with the UI's right edge on narrower screens, so the page margin matches the left; from 1280px there is
             // spare room beside the UI (the description sits at the far right), so the panel moves out over it and covers less of the chart
             staged ? 'right-0 min-[1280px]:-right-[72px]' : 'right-0'
           } ${
-            staged
-              ? 'border-[var(--color-gray-400)]'
-              : 'border-[var(--color-gray-300)] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.3)]'
+            sideBySide
+              ? ''
+              : staged
+                ? 'border-[var(--color-gray-400)]'
+                : 'border-[var(--color-gray-300)] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.3)]'
           }`}
           initial={{ opacity: 0, x: 48, width: sideWidth }}
           animate={{ opacity: 1, x: 0, width: sideWidth }}

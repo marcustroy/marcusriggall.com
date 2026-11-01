@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/lib/useReducedMotion';
-import { Button, Icon } from '@kaizen/components';
+import { Button, Icon, Menu, MenuHeader, MenuItem, MenuPopover, MenuSection, MenuTrigger } from '@kaizen/components';
+import { useKaizenPortal } from '@/lib/useKaizenPortal';
 import '@/styles/kaizen.css';
 import './heatmap.css';
 import { heatmapContent, formatDelta, deltaColor } from './content';
@@ -18,6 +19,41 @@ const GROUP_HEADER_HEIGHT_COMPACT = 52;
 
 const GROUP_BORDER = 'border-l-2 border-[var(--color-gray-500)]';
 
+type SortId = 'responses-desc' | 'responses-asc' | 'score-desc' | 'score-asc' | 'department-asc' | 'department-desc';
+
+const SORT_SECTIONS: { heading: string; options: { id: SortId; label: string }[] }[] = [
+  {
+    heading: 'Responses',
+    options: [
+      { id: 'responses-desc', label: 'Most - least' },
+      { id: 'responses-asc', label: 'Least - most' },
+    ],
+  },
+  {
+    heading: 'Engagement score',
+    options: [
+      { id: 'score-desc', label: 'Highest - lowest' },
+      { id: 'score-asc', label: 'Lowest - highest' },
+    ],
+  },
+  {
+    heading: 'Department',
+    options: [
+      { id: 'department-asc', label: 'A - Z' },
+      { id: 'department-desc', label: 'Z - A' },
+    ],
+  },
+];
+
+const SORT_LABELS: Record<SortId, string> = {
+  'responses-desc': 'Responses (most-least)',
+  'responses-asc': 'Responses (least-most)',
+  'score-desc': 'Engagement score (highest-lowest)',
+  'score-asc': 'Engagement score (lowest-highest)',
+  'department-asc': 'Department (A-Z)',
+  'department-desc': 'Department (Z-A)',
+};
+
 interface HeatmapPanelProps {
   className?: string;
 }
@@ -26,11 +62,32 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   const reducedMotion = useReducedMotion();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [sort, setSort] = useState<SortId>('department-asc');
+  const menuContainer = useKaizenPortal();
 
   const transition = reducedMotion
     ? { duration: 0 }
     : { type: 'spring' as const, stiffness: 240, damping: 30, mass: 0.9 };
   const fade = reducedMotion ? { duration: 0 } : { duration: 0.25, ease: 'easeOut' as const };
+
+  // The columns in the chosen order. Each keeps its own index into the data, so only the order changes.
+  const engagementRow = heatmapContent.rows.find((row) => row.label === 'Engagement') ?? heatmapContent.rows[0];
+  const sortValue = (index: number) =>
+    sort.startsWith('responses')
+      ? heatmapContent.responses[index].thisSurvey
+      : sort.startsWith('score')
+        ? engagementRow.cells[index].thisSurvey
+        : 0;
+  const order = heatmapContent.groups
+    .map((group, index) => index)
+    .sort((a, b) => {
+      if (sort.startsWith('department')) {
+        const byName = heatmapContent.groups[a].localeCompare(heatmapContent.groups[b]);
+        return sort === 'department-asc' ? byName : -byName;
+      }
+      const byValue = sortValue(a) - sortValue(b);
+      return sort.endsWith('desc') ? -byValue : byValue;
+    });
 
   const isExpanded = (group: string) => expandedGroups.includes(group);
   const anyExpanded = expandedGroups.length > 0;
@@ -128,17 +185,33 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
           </Button>
         </div>
         <div className="hidden sm:block">
-          <Button
-            variant="tertiary"
-            size="small"
-            className="heatmap-toolbar-button"
-            icon={<Icon name="expand_more" isPresentational />}
-            iconPosition="end"
-          >
-            <span className="whitespace-nowrap">
-              <span className="font-semibold">Sort by:</span> Department (A-Z)
-            </span>
-          </Button>
+          <MenuTrigger>
+            <Button
+              variant="tertiary"
+              size="small"
+              className="heatmap-toolbar-button"
+              icon={<Icon name="expand_more" isPresentational />}
+              iconPosition="end"
+            >
+              <span className="whitespace-nowrap">
+                <span className="font-semibold">Sort by:</span> {SORT_LABELS[sort]}
+              </span>
+            </Button>
+            <MenuPopover placement="bottom end" UNSTABLE_portalContainer={menuContainer}>
+              <Menu onAction={(key) => setSort(key as SortId)}>
+                {SORT_SECTIONS.map((section) => (
+                  <MenuSection key={section.heading}>
+                    <MenuHeader>{section.heading}</MenuHeader>
+                    {section.options.map((option) => (
+                      <MenuItem key={option.id} id={option.id}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </MenuSection>
+                ))}
+              </Menu>
+            </MenuPopover>
+          </MenuTrigger>
         </div>
       </div>
 
@@ -209,11 +282,13 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
           </div>
 
           {/* Groups */}
-          {heatmapContent.groups.map((group, groupIndex) => {
+          {order.map((groupIndex) => {
+            const group = heatmapContent.groups[groupIndex];
             const expanded = isExpanded(group);
             return (
             <motion.div
               key={group}
+              layout="position"
               className={`shrink-0 ${GROUP_BORDER}`}
               initial={false}
               animate={{ width: expanded ? SUB_WIDTH * 3 : COMPACT_WIDTH }}

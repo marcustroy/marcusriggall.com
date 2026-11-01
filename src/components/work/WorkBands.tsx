@@ -44,12 +44,6 @@ export default function WorkBands() {
                   className={`pl-10 transition-opacity duration-300 ${isOpen ? 'opacity-100 delay-150' : 'opacity-0'}`}
                 >
                   <p className="type-small mt-4 max-w-[420px]">{project.description}</p>
-                  <p className="type-small mt-6 flex items-center gap-2 font-medium" style={{ color: project.accent }}>
-                    View case study
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </p>
                 </div>
               </div>
               <div

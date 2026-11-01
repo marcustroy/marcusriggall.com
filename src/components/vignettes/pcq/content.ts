@@ -101,6 +101,50 @@ export const typicalGroups: DemographicGroup[] = [
   { id: 'support', name: 'Support', x: 89, y: 37, color: c('red-300') },
 ];
 
+export type DemographicId = 'manager' | 'department' | 'region' | 'performance';
+
+export const demographics: { id: DemographicId; label: string }[] = [
+  { id: 'manager', label: 'Manager' },
+  { id: 'department', label: 'Department' },
+  { id: 'region', label: 'Region' },
+  { id: 'performance', label: 'Performance' },
+];
+
+const managerGroups: DemographicGroup[] = [
+  { id: 'manager-priya', name: 'Priya Nair', x: 81, y: 86, color: c('green-600') },
+  { id: 'manager-tom', name: 'Tom Becker', x: 74, y: 69, color: c('yellow-500') },
+  { id: 'manager-aiko', name: 'Aiko Tanaka', x: 58, y: 78, color: c('orange-500') },
+  { id: 'manager-luis', name: 'Luis Ortega', x: 66, y: 52, color: c('red-500') },
+  { id: 'manager-hannah', name: 'Hannah Cole', x: 29, y: 74, color: c('blue-400') },
+  { id: 'manager-sam', name: 'Sam Okafor', x: 88, y: 58, color: c('purple-300') },
+  { id: 'manager-mia', name: 'Mia Lindqvist', x: 41, y: 38, color: c('green-400') },
+  { id: 'manager-daniel', name: 'Daniel Reyes', x: 14, y: 27, color: c('red-300'), smallGroup: true },
+];
+
+const regionGroups: DemographicGroup[] = [
+  { id: 'region-anz', name: 'Australia & New Zealand', x: 79, y: 80, color: c('green-600') },
+  { id: 'region-na', name: 'North America', x: 70, y: 66, color: c('blue-400') },
+  { id: 'region-uk', name: 'UK & Ireland', x: 56, y: 74, color: c('yellow-500') },
+  { id: 'region-emea', name: 'Europe, Middle East & Africa', x: 63, y: 49, color: c('orange-500') },
+  { id: 'region-apac', name: 'Asia Pacific', x: 84, y: 55, color: c('purple-300') },
+  { id: 'region-latam', name: 'Latin America', x: 31, y: 42, color: c('red-500'), smallGroup: true },
+];
+
+const performanceGroups: DemographicGroup[] = [
+  { id: 'performance-top', name: 'Top performers', x: 90, y: 88, color: c('green-600') },
+  { id: 'performance-strong', name: 'Strong performers', x: 77, y: 73, color: c('green-400') },
+  { id: 'performance-solid', name: 'Solid contributors', x: 62, y: 58, color: c('yellow-500') },
+  { id: 'performance-developing', name: 'Developing', x: 46, y: 41, color: c('orange-500') },
+  { id: 'performance-support', name: 'Needs support', x: 22, y: 24, color: c('red-500'), smallGroup: true },
+];
+
+export const groupsByDemographic: Record<DemographicId, DemographicGroup[]> = {
+  manager: managerGroups,
+  department: typicalGroups,
+  region: regionGroups,
+  performance: performanceGroups,
+};
+
 // Deterministic spread of groups so the stress test looks the same on every load.
 function seeded(seed: number) {
   let a = seed;
