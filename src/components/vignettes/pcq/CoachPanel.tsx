@@ -44,7 +44,7 @@ function RichText({ text }: { text: string }) {
 function introText(quadrantId: QuadrantId) {
   const quadrant = quadrantById[quadrantId];
   const themes = coachThemes[quadrantId].map((theme) => `• ${theme}`).join('\n');
-  return `Your organization sits in the **${quadrant.name}** quadrant.\n\nHere are the key themes I can see:\n${themes}`;
+  return `Your organisation sits in the **${quadrant.name}** quadrant.\n\nHere are the key themes I can see:\n${themes}`;
 }
 
 export type CoachAutoEvent = 'intro-done' | 'typed' | 'sent';
@@ -275,7 +275,7 @@ export default function CoachPanel({ quadrantId, onClose, autoPlay = false, auto
           </Button>
         </div>
         <p className="mt-2 text-[10px] leading-[1.4] text-[var(--color-gray-600)]">
-          Your conversations with Coach are private and not shared with anyone in your organization.
+          Your conversations with Coach are private and not shared with anyone in your organisation.
         </p>
       </form>
     </div>

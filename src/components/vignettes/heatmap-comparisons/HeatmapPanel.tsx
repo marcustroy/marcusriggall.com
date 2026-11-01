@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useReducedMotion } from '@/lib/useReducedMotion';
-import { Button, Icon, Menu, MenuHeader, MenuItem, MenuPopover, MenuSection, MenuTrigger } from '@kaizen/components';
+import { Button, Icon, LoadingParagraph, Menu, MenuHeader, MenuPopover, MenuSection, MenuTrigger } from '@kaizen/components';
 import { useKaizenPortal } from '@/lib/useKaizenPortal';
+import MenuOption from '../shared/MenuOption';
 import '@/styles/kaizen.css';
 import './heatmap.css';
 import { heatmapContent, formatDelta, deltaColor } from './content';
@@ -62,7 +63,23 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   const reducedMotion = useReducedMotion();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  // `sort` is what the menu has chosen; `appliedSort` is the order on screen, which only changes once the
+  // loading state has run, so the columns never visibly move to their new places.
   const [sort, setSort] = useState<SortId>('department-asc');
+  const [appliedSort, setAppliedSort] = useState<SortId>('department-asc');
+  const [loading, setLoading] = useState(false);
+  const loadTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(loadTimer.current), []);
+  const chooseSort = (next: SortId) => {
+    if (next === sort) return;
+    clearTimeout(loadTimer.current);
+    setSort(next);
+    setLoading(true);
+    loadTimer.current = setTimeout(() => {
+      setAppliedSort(next);
+      setLoading(false);
+    }, reducedMotion ? 300 : 900);
+  };
   const menuContainer = useKaizenPortal();
 
   const transition = reducedMotion
@@ -73,20 +90,20 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
   // The columns in the chosen order. Each keeps its own index into the data, so only the order changes.
   const engagementRow = heatmapContent.rows.find((row) => row.label === 'Engagement') ?? heatmapContent.rows[0];
   const sortValue = (index: number) =>
-    sort.startsWith('responses')
+    appliedSort.startsWith('responses')
       ? heatmapContent.responses[index].thisSurvey
-      : sort.startsWith('score')
+      : appliedSort.startsWith('score')
         ? engagementRow.cells[index].thisSurvey
         : 0;
   const order = heatmapContent.groups
     .map((group, index) => index)
     .sort((a, b) => {
-      if (sort.startsWith('department')) {
+      if (appliedSort.startsWith('department')) {
         const byName = heatmapContent.groups[a].localeCompare(heatmapContent.groups[b]);
-        return sort === 'department-asc' ? byName : -byName;
+        return appliedSort === 'department-asc' ? byName : -byName;
       }
       const byValue = sortValue(a) - sortValue(b);
-      return sort.endsWith('desc') ? -byValue : byValue;
+      return appliedSort.endsWith('desc') ? -byValue : byValue;
     });
 
   const isExpanded = (group: string) => expandedGroups.includes(group);
@@ -116,7 +133,17 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
     height: number,
     expanded: boolean,
     bold = false
-  ) => (
+  ) =>
+    loading ? (
+      // Sorting: the cells show as plain gray-100 blocks until the new order is ready.
+      <motion.div
+        key={key}
+        className="w-full border-t border-[var(--color-gray-300)] bg-[var(--color-gray-100)]"
+        initial={false}
+        animate={{ height }}
+        transition={transition}
+      />
+    ) : (
     <motion.div
       key={key}
       className="flex w-full border-t border-[var(--color-gray-300)]"
@@ -198,14 +225,14 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
               </span>
             </Button>
             <MenuPopover placement="bottom end" UNSTABLE_portalContainer={menuContainer}>
-              <Menu onAction={(key) => setSort(key as SortId)}>
+              <Menu onAction={(key) => chooseSort(key as SortId)}>
                 {SORT_SECTIONS.map((section) => (
                   <MenuSection key={section.heading}>
                     <MenuHeader>{section.heading}</MenuHeader>
                     {section.options.map((option) => (
-                      <MenuItem key={option.id} id={option.id}>
+                      <MenuOption key={option.id} id={option.id} selected={sort === option.id}>
                         {option.label}
-                      </MenuItem>
+                      </MenuOption>
                     ))}
                   </MenuSection>
                 ))}
@@ -288,7 +315,6 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
             return (
             <motion.div
               key={group}
-              layout="position"
               className={`shrink-0 ${GROUP_BORDER}`}
               initial={false}
               animate={{ width: expanded ? SUB_WIDTH * 3 : COMPACT_WIDTH }}
@@ -304,7 +330,13 @@ export default function HeatmapPanel({ className = '' }: HeatmapPanelProps) {
                 animate={{ height: groupHeaderHeight }}
                 transition={transition}
               >
-                <span className="leading-tight">{group}</span>
+                {loading ? (
+                  <div className="w-full">
+                    <LoadingParagraph isAnimated noBottomMargin width={60} />
+                  </div>
+                ) : (
+                  <span className="leading-tight">{group}</span>
+                )}
                 <div className={expanded ? 'absolute right-1 top-1/2 -translate-y-1/2' : 'shrink-0'}>
                   <Button
                     variant="tertiary"

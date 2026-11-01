@@ -154,7 +154,7 @@ const summaries = [
     id: 'positive',
     label: 'Positive',
     color: 'var(--color-green-600)',
-    text: "Employees highly value the organizational culture, which emphasizes a healthy work-life balance and the presence of supportive, collaborative colleagues. Staff members also express appreciation for the company's commitment to employee well-being, the provision of attractive perks, and recent improvements in management practices.",
+    text: "Employees highly value the organisational culture, which emphasizes a healthy work-life balance and the presence of supportive, collaborative colleagues. Staff members also express appreciation for the company's commitment to employee well-being, the provision of attractive perks, and recent improvements in management practices.",
   },
   {
     id: 'neutral',

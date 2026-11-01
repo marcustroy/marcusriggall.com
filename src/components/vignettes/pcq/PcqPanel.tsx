@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, type Transition } from 'framer-motion';
-import { Button, Heading, Icon, Menu, MenuItem, MenuPopover, MenuTrigger } from '@kaizen/components';
+import { Button, Heading, Icon, Menu, MenuPopover, MenuTrigger } from '@kaizen/components';
 import { useKaizenPortal } from '@/lib/useKaizenPortal';
+import MenuOption from '../shared/MenuOption';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import CoachPanel, { type CoachAutoEvent } from './CoachPanel';
 import ScoreDetailPanel, { type DetailView } from './ScoreDetailPanel';
@@ -22,6 +23,7 @@ import {
   demographics,
   groupsByDemographic,
   type DemographicId,
+  type PointShape,
   quadrantById,
   quadrants,
   stressGroups,
@@ -40,6 +42,9 @@ const CHIP_BG = '#DDF2F4';
 const LEGEND_COLUMNS = 4;
 const LEGEND_LIMIT = LEGEND_COLUMNS * 2;
 const DOT_SIZE = 12;
+const CLUSTER_SIZE = 24;
+// Points this close together (as a percentage of the axis) are drawn as one dot with a count.
+const CLUSTER_DISTANCE = 1;
 const GRID_STEPS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 // Grid lines run a little past the plot area on every side, as in the product.
 const GRID_OVERHANG = 12;
@@ -52,7 +57,19 @@ interface PlottedPoint {
   x: number;
   y: number;
   color: string;
+  shape?: PointShape;
   kind: 'overall' | 'comparison' | 'group';
+}
+
+// A point's marker: a circle, then a triangle or a square once every colour has been used.
+function Marker({ shape = 'circle', color, size = DOT_SIZE }: { shape?: PointShape; color: string; size?: number }) {
+  const style: React.CSSProperties =
+    shape === 'triangle'
+      ? { width: size + 4, height: size + 2, clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }
+      : shape === 'square'
+        ? { width: size - 2, height: size - 2, borderRadius: 2 }
+        : { width: size, height: size, borderRadius: '9999px' };
+  return <span className="block shrink-0" style={{ ...style, background: color }} />;
 }
 
 interface DotProps {
@@ -130,7 +147,7 @@ function Dot({ point, left, top, visible, selected, hovered, move, fade, onSelec
       onFocus={() => onHover(true)}
       onBlur={() => onHover(false)}
       // A soft halo in a light tint of the dot's own colour on hover or focus, kept while it is selected.
-      className={`absolute rounded-full transition-shadow duration-150 hover:shadow-[0_0_0_7px_var(--dot-halo)] focus-visible:shadow-[0_0_0_7px_var(--dot-halo)] focus-visible:outline-none ${
+      className={`absolute flex items-center justify-center rounded-full transition-shadow duration-150 hover:shadow-[0_0_0_7px_var(--dot-halo)] focus-visible:shadow-[0_0_0_7px_var(--dot-halo)] focus-visible:outline-none ${
         selected || hovered ? 'shadow-[0_0_0_7px_var(--dot-halo)]' : ''
       }`}
       style={{
@@ -139,7 +156,6 @@ function Dot({ point, left, top, visible, selected, hovered, move, fade, onSelec
         height: DOT_SIZE,
         marginLeft: -DOT_SIZE / 2,
         marginTop: -DOT_SIZE / 2,
-        background: point.color,
         zIndex: point.kind === 'group' ? 2 : 3,
         pointerEvents: shown ? 'auto' : 'none',
       } as React.CSSProperties}
@@ -156,7 +172,30 @@ function Dot({ point, left, top, visible, selected, hovered, move, fade, onSelec
         opacity: fade,
         scale: fade,
       }}
-    />
+    >
+      <Marker shape={point.shape} color={point.color} />
+    </motion.button>
+  );
+}
+
+// The card that follows a hovered point: its name, then its two scores.
+function PointTooltip({ left, top, title, lines }: { left: number; top: number; title: string; lines: string[] }) {
+  return (
+    <div
+      className="pointer-events-none absolute z-30 whitespace-nowrap rounded-xl bg-[var(--color-white)] px-4 py-3 text-[13px] leading-snug text-[var(--color-black)] shadow-[0_6px_20px_-4px_rgba(0,0,0,0.3)]"
+      style={{
+        left: `${Math.min(82, Math.max(18, left))}%`,
+        top: `calc(${top}% - ${DOT_SIZE + 6}px)`,
+        transform: 'translate(-50%, -100%)',
+      }}
+    >
+      <p className="m-0 font-semibold">{title}</p>
+      {lines.map((line) => (
+        <p key={line} className="m-0 mt-1.5">
+          {line}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -449,7 +488,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
       color: 'var(--color-blue-500)',
       kind: 'comparison',
     },
-    ...groups.map((g) => ({ id: g.id, name: g.name, x: g.x, y: g.y, color: g.color, kind: 'group' as const })),
+    ...groups.map((g) => ({ id: g.id, name: g.name, x: g.x, y: g.y, color: g.color, shape: g.shape, kind: 'group' as const })),
   ];
 
   // The visible axis range: the whole chart, or a single zoomed quadrant.
@@ -460,6 +499,32 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
   const toTop = (y: number) => 100 - ((y - domain.y[0]) / (domain.y[1] - domain.y[0])) * 100;
   const inDomain = (p: { x: number; y: number }) =>
     p.x >= domain.x[0] && p.x <= domain.x[1] && p.y >= domain.y[0] && p.y <= domain.y[1];
+
+  // On the full chart, crowded points merge into one counted dot; zooming into a quadrant spreads them out again.
+  const clusters = (() => {
+    if (zoomed || !showPoints) return [];
+    const candidates = points.filter((p) => p.kind === 'group' && inDomain(p));
+    const used = new Set<string>();
+    const found: { id: string; members: PlottedPoint[]; x: number; y: number }[] = [];
+    for (const seed of candidates) {
+      if (used.has(seed.id)) continue;
+      const members = candidates.filter(
+        (p) =>
+          !used.has(p.id) && Math.abs(p.x - seed.x) <= CLUSTER_DISTANCE && Math.abs(p.y - seed.y) <= CLUSTER_DISTANCE
+      );
+      if (members.length < 2) continue;
+      members.forEach((m) => used.add(m.id));
+      found.push({
+        id: `cluster-${seed.id}`,
+        members,
+        x: members.reduce((sum, m) => sum + m.x, 0) / members.length,
+        y: members.reduce((sum, m) => sum + m.y, 0) / members.length,
+      });
+    }
+    return found;
+  })();
+  const clusteredIds = new Set(clusters.flatMap((cluster) => cluster.members.map((m) => m.id)));
+  const hoveredCluster = clusters.find((cluster) => cluster.id === hoveredId);
 
   const legendPoints = showPoints ? points.filter(inDomain) : [];
   // The case study shows a single row of the legend.
@@ -497,7 +562,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
 
   return (
     <div ref={rootRef} onPointerDownCapture={cancelAuto} className={`kaizen-scope relative w-full ${
-        sideBySide ? 'overflow-hidden rounded-xl border border-[var(--color-gray-300)] bg-[var(--color-white)]' : ''
+        sideBySide ? 'rounded-xl border border-[var(--color-gray-300)] bg-[var(--color-white)]' : ''
       } ${className}`}
     >
     <div
@@ -505,7 +570,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
       className={`relative min-w-0 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)] transition-[width,padding] duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:transition-none ${
         // Case study: the same size on every step, short enough to sit in the viewport with room above and below.
         staged ? 'flex h-[min(540px,calc(100vh-280px))] min-h-[440px] flex-col border border-[var(--color-gray-400)]' : ''
-      } ${sideBySide ? '!rounded-none' : ''}`}
+      } ${sideBySide ? (shrinks ? '!rounded-l-xl !rounded-r-none' : '!rounded-xl') : ''}`}
       style={{ width: cardWidth, paddingRight: shrinks ? 20 + overlap : 20 }}
     >
       {/* Title, with the state explorer at the right */}
@@ -556,7 +621,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
                 ))}
               </div>
               <p className="mb-2 mt-4 border-t border-[var(--color-gray-300)] pt-3 text-[13px] font-semibold">
-                Organization quadrant
+                Organisation quadrant
               </p>
               <div className="grid grid-cols-2 gap-1.5">
                 {quadrants.map((q) => (
@@ -654,9 +719,9 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
                   <MenuPopover placement="bottom start" UNSTABLE_portalContainer={menuContainer}>
                     <Menu onAction={(key) => chooseDemographic(key as DemographicId)}>
                       {demographics.map((item) => (
-                        <MenuItem key={item.id} id={item.id}>
+                        <MenuOption key={item.id} id={item.id} selected={demographicActive && demographicId === item.id}>
                           {item.label}
-                        </MenuItem>
+                        </MenuOption>
                       ))}
                     </Menu>
                   </MenuPopover>
@@ -806,7 +871,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
                       point={p}
                       left={toLeft(p.x)}
                       top={toTop(p.y)}
-                      visible={showPoints && inDomain(p)}
+                      visible={showPoints && inDomain(p) && !clusteredIds.has(p.id)}
                       selected={detailPoint?.id === p.id}
                       hovered={hoveredId === p.id}
                       move={move}
@@ -820,16 +885,58 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
                     />
                   ))}
 
-                  {hovered && (
-                    <div
-                      className="pointer-events-none absolute z-30 -translate-x-1/2 whitespace-nowrap rounded bg-[var(--color-purple-800)] px-2 py-1 text-[11px] text-[var(--color-white)]"
-                      style={{
-                        left: `${Math.min(88, Math.max(12, toLeft(hovered.x)))}%`,
-                        top: `calc(${toTop(hovered.y)}% - ${DOT_SIZE + 22}px)`,
-                      }}
-                    >
-                      {hovered.name}
-                    </div>
+                  {/* crowded points, merged */}
+                  <AnimatePresence>
+                    {clusters.map((cluster) => (
+                      <motion.button
+                        key={cluster.id}
+                        type="button"
+                        aria-label={`${cluster.members.length} demographic values, zoom in to see them`}
+                        onClick={() => {
+                          const quadrant = quadrants.find(
+                            (q) =>
+                              cluster.x >= q.x[0] && cluster.x <= q.x[1] && cluster.y >= q.y[0] && cluster.y <= q.y[1]
+                          );
+                          if (quadrant) setZoomed(quadrant.id);
+                        }}
+                        onMouseEnter={() => setHoveredId(cluster.id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        onFocus={() => setHoveredId(cluster.id)}
+                        onBlur={() => setHoveredId(null)}
+                        className="absolute flex cursor-zoom-in items-center justify-center rounded-full border border-[var(--color-gray-400)] bg-[var(--color-white)] text-[11px] font-semibold leading-none text-[var(--color-black)] focus-visible:outline-none focus-visible:border-[var(--color-gray-500)]"
+                        style={{
+                          width: CLUSTER_SIZE,
+                          height: CLUSTER_SIZE,
+                          marginLeft: -CLUSTER_SIZE / 2,
+                          marginTop: -CLUSTER_SIZE / 2,
+                          left: `${toLeft(cluster.x)}%`,
+                          top: `${toTop(cluster.y)}%`,
+                          zIndex: 4,
+                        }}
+                        initial={{ opacity: 0, scale: 0.4 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.4 }}
+                        transition={fade}
+                      >
+                        {cluster.members.length}
+                      </motion.button>
+                    ))}
+                  </AnimatePresence>
+
+                  {(hovered || hoveredCluster) && (
+                    <PointTooltip
+                      left={toLeft((hovered ?? hoveredCluster!).x)}
+                      top={toTop((hovered ?? hoveredCluster!).y)}
+                      title={hovered ? hovered.name : `${hoveredCluster!.members.length} groups`}
+                      lines={
+                        hovered
+                          ? [
+                              `Workplace Engagement: ${Math.round(hovered.y)}%`,
+                              `Performance Confidence: ${Math.round(hovered.x)}%`,
+                            ]
+                          : hoveredCluster!.members.map((member) => member.name)
+                      }
+                    />
                   )}
                 </div>
 
@@ -863,7 +970,9 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
                   transition={reducedMotion ? { duration: 0 } : { duration: 0.4 }}
                   className="inline-flex min-w-0 items-center gap-2 text-[12px] leading-tight"
                 >
-                  <span className="inline-block h-3 w-3 shrink-0 rounded-full" style={{ background: p.color }} />
+                  <span className="inline-flex h-3 w-3 shrink-0 items-center justify-center">
+                    <Marker shape={p.shape} color={p.color} />
+                  </span>
                   <span className="min-w-0">{p.name}</span>
                 </motion.span>
               ))}
@@ -909,7 +1018,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
           key="side"
           aria-label={coachOpen ? 'Coach' : 'Score detail'}
           className={`absolute z-30 overflow-hidden bg-[var(--color-white)] ${
-            sideBySide ? 'inset-y-0 border-l border-[var(--color-gray-300)]' : '-bottom-2 -top-2 rounded-[14px] border'
+            sideBySide ? 'inset-y-0 rounded-r-xl border-l border-[var(--color-gray-300)]' : '-bottom-2 -top-2 rounded-[14px] border'
           } ${
             // Flush with the UI's right edge on narrower screens, so the page margin matches the left; from 1280px there is
             // spare room beside the UI (the description sits at the far right), so the panel moves out over it and covers less of the chart

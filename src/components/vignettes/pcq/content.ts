@@ -22,9 +22,9 @@ export const quadrants: QuadrantInfo[] = [
     name: 'Engaged Skepticism',
     x: [0, THRESHOLD],
     y: [THRESHOLD, 100],
-    title: 'Your organization sits in the Engaged Skepticism quadrant',
+    title: 'Your organisation sits in the Engaged Skepticism quadrant',
     summary:
-      "Employees are engaged and connected to their work (Workplace Engagement is {we}), but there's lower confidence in the organization's ability to succeed (Performance Confidence is {pc}).",
+      "Employees are engaged and connected to their work (Workplace Engagement is {we}), but there's lower confidence in the organisation's ability to succeed (Performance Confidence is {pc}).",
   },
   {
     id: 'peak-performance',
@@ -32,9 +32,9 @@ export const quadrants: QuadrantInfo[] = [
     name: 'Peak Performance',
     x: [THRESHOLD, 100],
     y: [THRESHOLD, 100],
-    title: 'Your organization sits in the Peak Performance quadrant',
+    title: 'Your organisation sits in the Peak Performance quadrant',
     summary:
-      "Employees are engaged and connected to their work (Workplace Engagement is {we}), and there's strong confidence in the organization's ability to succeed (Performance Confidence is {pc}).",
+      "Employees are engaged and connected to their work (Workplace Engagement is {we}), and there's strong confidence in the organisation's ability to succeed (Performance Confidence is {pc}).",
   },
   {
     id: 'disconnected',
@@ -42,9 +42,9 @@ export const quadrants: QuadrantInfo[] = [
     name: 'Disconnected',
     x: [0, THRESHOLD],
     y: [0, THRESHOLD],
-    title: 'Your organization sits in the Disconnected quadrant',
+    title: 'Your organisation sits in the Disconnected quadrant',
     summary:
-      "Employees feel less engaged and connected to their work (Workplace Engagement is {we}), and there's lower confidence in the organization's ability to succeed (Performance Confidence is {pc}).",
+      "Employees feel less engaged and connected to their work (Workplace Engagement is {we}), and there's lower confidence in the organisation's ability to succeed (Performance Confidence is {pc}).",
   },
   {
     id: 'strained',
@@ -52,9 +52,9 @@ export const quadrants: QuadrantInfo[] = [
     name: 'Strained',
     x: [THRESHOLD, 100],
     y: [0, THRESHOLD],
-    title: 'Your organization sits in the Strained quadrant',
+    title: 'Your organisation sits in the Strained quadrant',
     summary:
-      "There's solid confidence in the organization's ability to succeed (Performance Confidence is {pc}), but employees feel less engaged and connected to their work (Workplace Engagement is {we}).",
+      "There's solid confidence in the organisation's ability to succeed (Performance Confidence is {pc}), but employees feel less engaged and connected to their work (Workplace Engagement is {we}).",
   },
 ];
 
@@ -75,10 +75,14 @@ export const overallByQuadrant: Record<QuadrantId, Point> = {
 
 export const comparisonPoint: Point = { x: 63.5, y: 70.5 };
 
+export type PointShape = 'circle' | 'triangle' | 'square';
+
 export interface DemographicGroup extends Point {
   id: string;
   name: string;
   color: string;
+  /** Circles first; once every colour is taken, triangles; then squares. */
+  shape?: PointShape;
   /** Hidden when privacy protection is on because too few people responded. */
   smallGroup?: boolean;
 }
@@ -86,7 +90,28 @@ export interface DemographicGroup extends Point {
 // Kaizen colour tokens.
 const c = (token: string) => `var(--color-${token})`;
 
-export const typicalGroups: DemographicGroup[] = [
+// Every value gets its own look. Colours are never shared: when they run out the same colours come round again
+// as triangles, then as squares. (Purple-500 and blue-500 are kept back for the Overall and comparison points.)
+const markerColors = [
+  'green-300', 'green-500', 'green-700',
+  'yellow-400', 'yellow-600',
+  'orange-300', 'orange-500', 'orange-700',
+  'red-300', 'red-500', 'red-700',
+  'blue-300', 'blue-400', 'blue-600',
+  'purple-300', 'purple-400', 'purple-700',
+  'gray-500',
+].map(c);
+const markerShapes: PointShape[] = ['circle', 'triangle', 'square'];
+
+function styled(groups: DemographicGroup[]): DemographicGroup[] {
+  return groups.map((group, i) => ({
+    ...group,
+    color: markerColors[i % markerColors.length],
+    shape: markerShapes[Math.floor(i / markerColors.length) % markerShapes.length],
+  }));
+}
+
+const typicalGroupData: DemographicGroup[] = [
   { id: 'accounting', name: 'Accounting', x: 12.5, y: 7.5, color: c('green-600') },
   { id: 'brand', name: 'Brand', x: 0.5, y: 55, color: c('yellow-500') },
   { id: 'cloud', name: 'Cloud services', x: 18.5, y: 43, color: c('orange-500') },
@@ -100,6 +125,7 @@ export const typicalGroups: DemographicGroup[] = [
   { id: 'product', name: 'Product', x: 24, y: 78, color: c('purple-300') },
   { id: 'support', name: 'Support', x: 89, y: 37, color: c('red-300') },
 ];
+export const typicalGroups = styled(typicalGroupData);
 
 export type DemographicId = 'manager' | 'department' | 'region' | 'performance';
 
@@ -139,10 +165,10 @@ const performanceGroups: DemographicGroup[] = [
 ];
 
 export const groupsByDemographic: Record<DemographicId, DemographicGroup[]> = {
-  manager: managerGroups,
+  manager: styled(managerGroups),
   department: typicalGroups,
-  region: regionGroups,
-  performance: performanceGroups,
+  region: styled(regionGroups),
+  performance: styled(performanceGroups),
 };
 
 // Deterministic spread of groups so the stress test looks the same on every load.
@@ -155,8 +181,6 @@ function seeded(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
-const stressColors = ['green-400', 'green-600', 'yellow-500', 'orange-400', 'orange-500', 'red-300', 'red-500', 'blue-300', 'blue-400', 'purple-300', 'purple-400'];
 
 const departmentNames = [
   'Accounting',
@@ -212,16 +236,29 @@ const shuffledDepartments = (() => {
   return names;
 })();
 
+// A large organisation: every department in each of three regions, up to one value for every colour and shape. Every twelfth value lands within a
+// percent of the one before it, so the full chart has a few crowded spots that cluster.
+const STRESS_COUNT = markerColors.length * markerShapes.length;
+const stressRegions = ['', ' (Americas)', ' (EMEA)'];
+
 export const stressGroups: DemographicGroup[] = (() => {
   const random = seeded(4266);
-  return shuffledDepartments.slice(0, 36).map((name, i) => ({
-    id: `department-${i}`,
-    name,
-    x: Math.round(random() * 1000) / 10,
-    y: Math.round(random() * 1000) / 10,
-    color: c(stressColors[i % stressColors.length]),
-    smallGroup: i % 7 === 3,
-  }));
+  const groups: DemographicGroup[] = [];
+  for (let i = 0; i < STRESS_COUNT; i++) {
+    const crowded = i % 12 === 11;
+    const previous = groups[i - 1];
+    const jitter = () => (random() * 2 - 1) * 0.7;
+    const clamp = (value: number) => Math.round(Math.min(100, Math.max(0, value)) * 10) / 10;
+    groups.push({
+      id: `department-${i}`,
+      name: `${shuffledDepartments[i % shuffledDepartments.length]}${stressRegions[Math.floor(i / shuffledDepartments.length)]}`,
+      x: crowded ? clamp(previous.x + jitter()) : Math.round(random() * 1000) / 10,
+      y: crowded ? clamp(previous.y + jitter()) : Math.round(random() * 1000) / 10,
+      color: '',
+      smallGroup: i % 7 === 3,
+    });
+  }
+  return styled(groups);
 })();
 
 export type PresetId = 'real' | 'typical' | 'none' | 'privacy' | 'stress' | 'error';
@@ -251,7 +288,7 @@ export const coachThemes: Record<QuadrantId, string[]> = {
     'Watch for pockets of lower engagement in a few departments.',
   ],
   'engaged-skepticism': [
-    'Employees care about their work but doubt the organization can deliver on its goals.',
+    'Employees care about their work but doubt the organisation can deliver on its goals.',
     'Questions about direction and leadership communication score lowest.',
     'Closing the confidence gap is the fastest route to Peak Performance.',
   ],
@@ -261,7 +298,7 @@ export const coachThemes: Record<QuadrantId, string[]> = {
     'Start with the departments furthest from the threshold to build momentum.',
   ],
   strained: [
-    'Employees trust where the organization is heading, but feel stretched day to day.',
+    'Employees trust where the organisation is heading, but feel stretched day to day.',
     'Workload and manager support are the biggest drags on engagement.',
     'Easing workload pressure should lift engagement fastest.',
   ],

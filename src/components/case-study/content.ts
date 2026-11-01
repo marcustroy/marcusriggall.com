@@ -47,7 +47,7 @@ export const caseStudies: Record<string, CaseStudyContent> = {
     projectName: 'Heatmap Survey Comparisons',
     headline:
       'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
-    body: `The Heatmap provides a high-level comparative view of their survey results, yet it was the one report where leaders couldn't compare results against a previous survey. .`,
+    body: '',
     decisionStories: [
       {
         id: 'customer-problem',
