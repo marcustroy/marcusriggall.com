@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, type Transition } from 'framer-motion';
 import { Button, Heading, Icon, Menu, MenuPopover, MenuTrigger } from '@kaizen/components';
 import { useKaizenPortal } from '@/lib/useKaizenPortal';
+import { useMediaQuery } from '@/lib/useMediaQuery';
 import MenuOption from '../shared/MenuOption';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import CoachPanel, { type CoachAutoEvent } from './CoachPanel';
@@ -65,9 +66,9 @@ interface PlottedPoint {
 function Marker({ shape = 'circle', color, size = DOT_SIZE }: { shape?: PointShape; color: string; size?: number }) {
   const style: React.CSSProperties =
     shape === 'triangle'
-      ? { width: size + 4, height: size + 2, clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }
+      ? { width: size, height: size, clipPath: 'polygon(50% 0, 100% 100%, 0 100%)' }
       : shape === 'square'
-        ? { width: size - 2, height: size - 2, borderRadius: 2 }
+        ? { width: size, height: size, borderRadius: 2 }
         : { width: size, height: size, borderRadius: '9999px' };
   return <span className="block shrink-0" style={{ ...style, background: color }} />;
 }
@@ -555,14 +556,17 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
 
   const sideWidth = coachOpen ? COACH_WIDTH : DETAIL_WIDTH;
   // On the home page the chart makes room for the panel. In the case study the panel simply overlays it.
-  const shrinks = sideOpen && !staged;
-  const overlap = sideBySide ? 0 : PANEL_OVERLAP;
+  // On tablets and phones there is no room for a column beside the chart, so the panel opens over it instead.
+  const narrow = useMediaQuery('(max-width: 1023px)');
+  const columnPanel = sideBySide && !narrow;
+  const shrinks = sideOpen && !staged && !(sideBySide && narrow);
+  const overlap = columnPanel ? 0 : PANEL_OVERLAP;
   const cardWidth = shrinks ? `calc(100% - ${sideWidth - overlap}px)` : '100%';
   const springTransition = reducedMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 220, damping: 30 };
 
   return (
     <div ref={rootRef} onPointerDownCapture={cancelAuto} className={`kaizen-scope relative w-full ${
-        sideBySide ? 'rounded-xl border border-[var(--color-gray-300)] bg-[var(--color-white)]' : ''
+        columnPanel ? 'rounded-xl border border-[var(--color-gray-300)] bg-[var(--color-white)]' : ''
       } ${className}`}
     >
     <div
@@ -570,7 +574,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
       className={`relative min-w-0 rounded-[var(--border-solid-border-radius)] bg-[var(--color-white)] p-5 text-[var(--color-purple-800)] transition-[width,padding] duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:transition-none ${
         // Case study: the same size on every step, short enough to sit in the viewport with room above and below.
         staged ? 'flex h-[min(540px,calc(100vh-280px))] min-h-[440px] flex-col border border-[var(--color-gray-400)]' : ''
-      } ${sideBySide ? (shrinks ? '!rounded-l-xl !rounded-r-none' : '!rounded-xl') : ''}`}
+      } ${columnPanel ? (shrinks ? '!rounded-l-xl !rounded-r-none' : '!rounded-xl') : ''}`}
       style={{ width: cardWidth, paddingRight: shrinks ? 20 + overlap : 20 }}
     >
       {/* Title, with the state explorer at the right */}
@@ -971,7 +975,7 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
                   className="inline-flex min-w-0 items-center gap-2 text-[12px] leading-tight"
                 >
                   <span className="inline-flex h-3 w-3 shrink-0 items-center justify-center">
-                    <Marker shape={p.shape} color={p.color} />
+                    <Marker shape={p.shape} color={p.color} size={12} />
                   </span>
                   <span className="min-w-0">{p.name}</span>
                 </motion.span>
@@ -1018,18 +1022,19 @@ export default function PcqPanel({ className = '', stage, showcase = false, side
           key="side"
           aria-label={coachOpen ? 'Coach' : 'Score detail'}
           className={`absolute z-30 overflow-hidden bg-[var(--color-white)] ${
-            sideBySide ? 'inset-y-0 rounded-r-xl border-l border-[var(--color-gray-300)]' : '-bottom-2 -top-2 rounded-[14px] border'
+            columnPanel ? 'inset-y-0 rounded-r-xl border-l border-[var(--color-gray-300)]' : '-bottom-2 -top-2 rounded-[14px] border'
           } ${
             // Flush with the UI's right edge on narrower screens, so the page margin matches the left; from 1280px there is
             // spare room beside the UI (the description sits at the far right), so the panel moves out over it and covers less of the chart
             staged ? 'right-0 min-[1280px]:-right-[72px]' : 'right-0'
           } ${
-            sideBySide
+            columnPanel
               ? ''
               : staged
                 ? 'border-[var(--color-gray-400)]'
                 : 'border-[var(--color-gray-300)] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.3)]'
           }`}
+          style={{ maxWidth: '100%' }}
           initial={{ opacity: 0, x: 48, width: sideWidth }}
           animate={{ opacity: 1, x: 0, width: sideWidth }}
           exit={{ opacity: 0, x: 48 }}

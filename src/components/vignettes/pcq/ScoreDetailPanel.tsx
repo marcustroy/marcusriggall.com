@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Icon, LoadingParagraph } from '@kaizen/components';
 import { useReducedMotion } from '@/lib/useReducedMotion';
 import '@/styles/kaizen.css';
+import { clamp, seededRandom } from './random';
+import PcqTrend from './PcqTrend';
 
 export interface ScoreDetailPoint {
   id: string;
@@ -12,6 +14,9 @@ export interface ScoreDetailPoint {
   x: number;
   /** Workplace Engagement score, 0-100. */
   y: number;
+  /** The point's colour and shape on the chart, reused for its trend. */
+  color?: string;
+  shape?: 'circle' | 'triangle' | 'square';
 }
 
 type Metric = 'engagement' | 'confidence';
@@ -27,20 +32,6 @@ const TREND_LABELS: { index: number; label: string }[] = [
   { index: 5, label: 'Aug 2025' },
   { index: 11, label: 'Oct 2026' },
 ];
-
-// Small seeded generator so a point's numbers are the same on every render and on the server.
-function seededRandom(seed: string) {
-  let a = 0;
-  for (let i = 0; i < seed.length; i++) a = (Math.imul(a, 31) + seed.charCodeAt(i)) | 0;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 // Favourable, neutral and unfavourable shares; what is not favourable splits roughly 60/40 into unfavourable and neutral.
 function split(favourable: number) {
@@ -224,9 +215,12 @@ function CommentSummaries({ onBack, onClose, pointName, metricLabel }: { onBack:
             <Icon name="close" isPresentational />
           </button>
         </div>
-        <h3 className="mt-4 text-[19px] font-semibold leading-tight">AI comment summaries</h3>
+        <h3 className="mt-4 flex items-center gap-2 text-[19px] font-semibold leading-tight">
+          <Icon name="auto_awesome" isPresentational className="shrink-0 !text-[20px] text-[var(--color-purple-800)]" />
+          AI comment summaries
+        </h3>
         <p className="mt-1 text-[13px] text-[var(--color-gray-600)]">
-          {pointName} · {metricLabel}
+          {pointName} / {metricLabel}
         </p>
       </div>
 
@@ -257,30 +251,27 @@ function CommentSummaries({ onBack, onClose, pointName, metricLabel }: { onBack:
   );
 }
 
-export type DetailView = 'detail' | 'comments';
-
-interface ScoreDetailPanelProps {
-  view: DetailView;
-  onViewChange: (view: DetailView) => void;
-  /** Shows a row's hover state, for the scripted walkthrough. */
-  hoverRow?: string | null;
+// The first screen for a selected point: where it has sat across surveys, then its two factors to open.
+function Overview({
+  point,
+  comparisonName,
+  comparison,
+  onOpen,
+  onClose,
+}: {
   point: ScoreDetailPoint;
   comparisonName: string;
   comparison: { x: number; y: number };
+  onOpen: (metric: Metric) => void;
   onClose: () => void;
-}
-
-// Side panel for a selected data point: participation, favourable split, trend and where to go next.
-export default function ScoreDetailPanel({ view, onViewChange, hoverRow, point, comparisonName, comparison, onClose }: ScoreDetailPanelProps) {
-  const reducedMotion = useReducedMotion();
-  const [metric, setMetric] = useState<Metric>('engagement');
-  const metricLabel = METRICS.find((m) => m.id === metric)!.label;
-  const { scores, delta, participation, series } = detailsFor(point, metric, metric === 'engagement' ? comparison.y : comparison.x);
-  const up = delta >= 0;
-
-  if (view === 'comments') {
-    return <CommentSummaries onBack={() => onViewChange('detail')} onClose={onClose} pointName={point.name} metricLabel={metricLabel} />;
-  }
+}) {
+  const factors = [
+    { id: 'confidence' as const, label: 'Performance Confidence', tag: 'Index factor' },
+    { id: 'engagement' as const, label: 'Workplace Engagement', tag: undefined },
+  ].map((factor) => ({
+    ...factor,
+    ...detailsFor(point, factor.id, factor.id === 'engagement' ? comparison.y : comparison.x),
+  }));
 
   return (
     <div className="text-[var(--color-purple-800)]">
@@ -294,23 +285,132 @@ export default function ScoreDetailPanel({ view, onViewChange, hoverRow, point, 
         </div>
       </div>
 
-      <div className="px-5 pt-4">
-        <div role="tablist" aria-label="Measure" className="flex rounded-[8px] border border-[var(--color-gray-400)] p-0.5 text-[11px]">
-          {METRICS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              role="tab"
-              aria-selected={m.id === metric}
-              onClick={() => setMetric(m.id)}
-              className={`min-w-0 flex-1 cursor-pointer whitespace-nowrap rounded-[6px] px-1 py-1.5 ${
-                m.id === metric ? 'bg-[var(--color-gray-200)] font-semibold' : ''
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+      <div className="border-b border-[var(--color-gray-300)] px-5 py-5">
+        <h4 className="text-[15px] font-semibold">Trend</h4>
+        <PcqTrend point={point} latestName={comparisonName} />
+      </div>
+
+      <div className="px-5 py-5">
+        <h4 className="text-[15px] font-semibold">Key factors</h4>
+        <p className="mt-2 text-[13px] leading-snug">
+          Track Performance Confidence and Workplace Engagement over time, compare across demographics, and identify where to focus
+        </p>
+        <div className="-mx-3 mt-4 flex flex-col gap-1">
+          {factors.map((factor) => {
+            const up = factor.delta >= 0;
+            return (
+              <button
+                key={factor.id}
+                type="button"
+                data-row={factor.id}
+                onClick={() => onOpen(factor.id)}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors duration-200 hover:bg-[var(--color-gray-200)]"
+              >
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-[14px] font-semibold">{factor.label}</span>
+                    {factor.tag && (
+                      <span className="shrink-0 rounded-full bg-[var(--color-blue-100)] px-2.5 py-0.5 text-[11px] text-[var(--color-blue-600)]">
+                        {factor.tag}
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-2.5 flex h-6 w-full overflow-hidden rounded-[4px] text-[12px] font-semibold">
+                    <span className="flex items-center justify-end bg-[var(--data-viz-favorable)] pr-1.5" style={{ width: `${factor.scores.favourable}%` }}>
+                      {factor.scores.favourable}
+                    </span>
+                    <span className="bg-[var(--color-gray-300)]" style={{ width: `${factor.scores.neutral}%` }} />
+                    <span className="bg-[var(--data-viz-unfavorable)]" style={{ width: `${factor.scores.unfavourable}%` }} />
+                  </span>
+                  <span className="mt-1.5 block text-[12px]">
+                    <span className={`font-semibold ${up ? 'text-[var(--color-green-600)]' : 'text-[var(--color-red-600)]'}`}>
+                      {up ? '↑' : '↓'} {Math.abs(factor.delta)}%
+                    </span>{' '}
+                    {comparisonName}
+                  </span>
+                </span>
+                <span className="flex shrink-0">
+                  <Icon name="arrow_forward" isPresentational />
+                </span>
+              </button>
+            );
+          })}
         </div>
+      </div>
+    </div>
+  );
+}
+
+export type DetailView = 'detail' | 'comments';
+
+interface ScoreDetailPanelProps {
+  view: DetailView;
+  onViewChange: (view: DetailView) => void;
+  /** Shows a row's hover state, for the scripted walkthrough. */
+  hoverRow?: string | null;
+  point: ScoreDetailPoint;
+  comparisonName: string;
+  comparison: { x: number; y: number };
+  onClose: () => void;
+}
+
+// Side panel for a selected data point: an overview of its trend and factors, then each factor's detail.
+export default function ScoreDetailPanel(props: ScoreDetailPanelProps) {
+  // null is the overview; choosing a factor opens its detail.
+  const [metric, setMetric] = useState<Metric | null>(null);
+  const anchor = useRef<HTMLDivElement>(null);
+
+  // Each screen starts at its top, whatever the one before it was scrolled to.
+  useLayoutEffect(() => {
+    anchor.current?.parentElement?.scrollTo({ top: 0 });
+  }, [metric, props.view]);
+
+  return (
+    <div ref={anchor}>
+      <ScoreDetailBody {...props} metric={metric} setMetric={setMetric} />
+    </div>
+  );
+}
+
+function ScoreDetailBody({
+  view,
+  onViewChange,
+  hoverRow,
+  point,
+  comparisonName,
+  comparison,
+  onClose,
+  metric,
+  setMetric,
+}: ScoreDetailPanelProps & { metric: Metric | null; setMetric: (metric: Metric | null) => void }) {
+  const reducedMotion = useReducedMotion();
+  const activeMetric = metric ?? 'engagement';
+  const metricLabel = METRICS.find((m) => m.id === activeMetric)!.label;
+  const { scores, delta, participation, series } = detailsFor(point, activeMetric, activeMetric === 'engagement' ? comparison.y : comparison.x);
+  const up = delta >= 0;
+
+  if (view === 'comments') {
+    return <CommentSummaries onBack={() => onViewChange('detail')} onClose={onClose} pointName={point.name} metricLabel={metricLabel} />;
+  }
+
+  if (metric === null) {
+    return <Overview point={point} comparisonName={comparisonName} comparison={comparison} onOpen={setMetric} onClose={onClose} />;
+  }
+
+  return (
+    <div className="text-[var(--color-purple-800)]">
+      <div className="border-b border-[var(--color-gray-300)] px-5 pb-4 pt-4">
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={() => setMetric(null)} className="flex cursor-pointer items-center gap-1.5 text-[14px]">
+            <Icon name="arrow_back" isPresentational />
+            Back
+          </button>
+          <button type="button" aria-label="Close" onClick={onClose} className="-m-1 flex cursor-pointer p-1">
+            <Icon name="close" isPresentational />
+          </button>
+        </div>
+        <h3 className="mt-4 text-[19px] font-semibold leading-tight">{metricLabel}</h3>
+        <p className="mt-1 text-[13px] text-[var(--color-gray-600)]">{point.name}</p>
       </div>
 
       <div className="border-b border-[var(--color-gray-300)] px-5 py-5">
@@ -355,7 +455,12 @@ export default function ScoreDetailPanel({ view, onViewChange, hoverRow, point, 
                 }`}
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[15px] font-semibold">{link.title}</span>
+                  <span className="flex items-center gap-1.5 text-[15px] font-semibold">
+                    {link.id === 'comments' && (
+                      <Icon name="auto_awesome" isPresentational className="shrink-0 !text-[16px] text-[var(--color-purple-800)]" />
+                    )}
+                    {link.title}
+                  </span>
                   <span className="mt-1.5 flex items-center gap-3">
                     {link.lines ? (
                       <span className="flex min-w-0 flex-1 flex-col gap-1.5" aria-hidden="true">
