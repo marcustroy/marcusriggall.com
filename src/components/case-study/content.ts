@@ -21,6 +21,8 @@ export interface CaseStudyContent {
   columns?: { heading: string; body?: string; stories?: DecisionStory[] }[]
   /** The UI brings its own tinted frame, so skip the shared Stage. */
   unstaged?: boolean
+  /** A closing line at the very bottom of the page. */
+  footnote?: string
   decisionStories: DecisionStory[]
 }
 
@@ -41,10 +43,11 @@ export const caseStudies: Record<string, CaseStudyContent> = {
     slug: 'heatmap-survey-comparisons',
     stageId: 'heatmap-comparisons',
     uiAbove: true,
+    footnote: 'Detailed case study to be presented during interview process',
     projectName: 'Heatmap Survey Comparisons',
     headline:
       'Comparisons across surveys help customers understand how results change over time, across teams, and against benchmarks in a single view',
-    body: `The Heatmap gives customers a high-level comparative view of their survey results, but it was the one report that couldn't compare against a previous survey. I designed survey comparisons so customers can see what is changing without leaving the Heatmap.`,
+    body: '',
     decisionStories: [
       {
         id: 'customer-problem',
@@ -80,6 +83,7 @@ The Heatmap is the most used report, and over the 12 months preceding this work,
     unstaged: true,
     uiAbove: true,
     meta: 'Culture Amp, 2026',
+    footnote: 'Detailed case study to be presented during interview process',
     projectName: 'Performance Culture Quadrant',
     headline:
       'Connecting engagement and performance confidence to help organisations understand their culture and identify the path to Peak Performance',

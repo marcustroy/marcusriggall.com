@@ -18,12 +18,14 @@ interface CaseStudyPageProps {
   content: CaseStudyContent
   /** The interactive UI shown beside the write-up. */
   children: React.ReactNode
+  /** Extra content after the write-up, e.g. the full interactive UI. */
+  after?: React.ReactNode
 }
 
 // Shared layout for work case studies: breadcrumb, write-up on the left, interactive UI on the right.
 const EASE_OUT = [0.22, 1, 0.36, 1] as const
 
-export default function CaseStudyPage({ content, children }: CaseStudyPageProps) {
+export default function CaseStudyPage({ content, children, after }: CaseStudyPageProps) {
   // The page's own content comes in once any transition cover starts to fade (straight away on a direct visit),
   // one piece after another, so the cover gives way to the page instead of hiding a finished one.
   const revealed = useRevealed()
@@ -134,6 +136,14 @@ export default function CaseStudyPage({ content, children }: CaseStudyPageProps)
             )}
           </motion.div>
         </section>
+        {after}
+        {content.footnote && (
+          <footer className="px-6 pb-16 lg:px-10 lg:pb-24 2xl:px-16">
+            <div className="mx-auto max-w-[1200px] border-t border-border-strong pt-6">
+              <p className="type-small">{content.footnote}</p>
+            </div>
+          </footer>
+        )}
       </div>
     )
   }

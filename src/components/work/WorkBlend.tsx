@@ -68,12 +68,6 @@ export default function WorkBlend() {
                     </div>
                     <div className="pb-8">
                       <p className="type-small max-w-[420px]">{project.description}</p>
-                      <p className="type-small mt-6 flex items-center gap-2 font-medium" style={{ color: project.accent }}>
-                        View case study
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </p>
                     </div>
                   </div>
                 </div>
